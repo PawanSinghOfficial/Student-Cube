@@ -70,7 +70,7 @@ const howItWorks = [
   {
     step: 3,
     title: "Connect Safely",
-    description: "Pay ₹5 to access seller contact. Chat with predefined keywords for safety before full payment.",
+    description: "Pay ₹9 to access seller contact. Chat with predefined keywords for safety before full payment.",
     icon: Shield,
   },
   {
