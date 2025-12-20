@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MOCK_PRODUCTS } from "@/data/mockData";
+import { UpiPaymentDialog } from "@/components/payments/UpiPaymentDialog";
 import {
   Heart,
   Share2,
@@ -28,6 +29,7 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
 
@@ -47,9 +49,13 @@ const ProductDetail = () => {
   const images = [product.image, product.image, product.image];
 
   const handleContactSeller = () => {
+    setShowPaymentDialog(true);
+  };
+
+  const handlePaymentComplete = () => {
     toast({
-      title: "Payment Required",
-      description: "Pay ₹5 to access seller contact details and start chatting.",
+      title: "Contact Access Granted!",
+      description: "You can now view seller contact details and chat freely.",
     });
   };
 
@@ -220,7 +226,7 @@ const ProductDetail = () => {
             <div className="space-y-3">
               <Button variant="accent" size="xl" className="w-full" onClick={handleContactSeller}>
                 <Phone className="h-5 w-5 mr-2" />
-                Contact Seller - ₹5
+                Contact Seller - ₹9
               </Button>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" size="lg">
@@ -278,6 +284,15 @@ const ProductDetail = () => {
           </div>
         </Card>
       </div>
+
+      {/* UPI Payment Dialog */}
+      <UpiPaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        amount={9}
+        purpose="Contact Access Fee - IPU KA ADDA"
+        onPaymentComplete={handlePaymentComplete}
+      />
     </Layout>
   );
 };
