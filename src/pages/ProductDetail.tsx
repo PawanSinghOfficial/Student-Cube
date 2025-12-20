@@ -21,6 +21,9 @@ import {
   Star,
   BadgeCheck,
   Phone,
+  Mail,
+  CheckCircle,
+  Copy,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,6 +33,7 @@ const ProductDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [contactUnlocked, setContactUnlocked] = useState(false);
 
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
 
@@ -53,9 +57,18 @@ const ProductDetail = () => {
   };
 
   const handlePaymentComplete = () => {
+    setContactUnlocked(true);
     toast({
       title: "Contact Access Granted!",
       description: "You can now view seller contact details and chat freely.",
+    });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: `${label} Copied!`,
+      description: `${text} has been copied to clipboard.`,
     });
   };
 
@@ -207,6 +220,52 @@ const ProductDetail = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Contact Details - Shown after payment */}
+              {contactUnlocked && product.seller.phone && product.seller.email && (
+                <div className="mt-4 pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                    <span className="text-sm font-medium text-success">Contact Access Unlocked!</span>
+                  </div>
+                  
+                  {/* Phone */}
+                  <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/20">
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-5 w-5 text-success" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Phone Number</p>
+                        <p className="font-medium">{product.seller.phone}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => copyToClipboard(product.seller.phone!, "Phone number")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Email */}
+                  <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/20">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-success" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Email Address</p>
+                        <p className="font-medium">{product.seller.email}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => copyToClipboard(product.seller.email!, "Email address")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Warning */}
@@ -224,14 +283,21 @@ const ProductDetail = () => {
 
             {/* Actions */}
             <div className="space-y-3">
-              <Button variant="accent" size="xl" className="w-full" onClick={handleContactSeller}>
-                <Phone className="h-5 w-5 mr-2" />
-                Contact Seller - ₹9
-              </Button>
+              {contactUnlocked ? (
+                <Button variant="success" size="xl" className="w-full" disabled>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Contact Unlocked
+                </Button>
+              ) : (
+                <Button variant="accent" size="xl" className="w-full" onClick={handleContactSeller}>
+                  <Phone className="h-5 w-5 mr-2" />
+                  Contact Seller - ₹9
+                </Button>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" size="lg">
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Quick Chat
+                  {contactUnlocked ? "Free Chat" : "Quick Chat"}
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />

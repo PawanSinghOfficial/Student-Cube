@@ -17,6 +17,8 @@ export interface Product {
     name: string;
     isDealer: boolean;
     isVerified: boolean;
+    phone?: string;
+    email?: string;
   };
   createdAt: string;
   views: number;
