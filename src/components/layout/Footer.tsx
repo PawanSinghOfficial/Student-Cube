@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Linkedin, Mail, MapPin } from "lucide-react";
 
 export function Footer() {
   return (
@@ -76,10 +76,6 @@ export function Footer() {
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Mail className="h-4 w-4 text-accent" />
                 support@ipukaadda.com
-              </li>
-              <li className="flex items-center gap-2 text-sm text-background/70">
-                <Phone className="h-4 w-4 text-accent" />
-                +91 98765 43210
               </li>
               <li className="flex items-start gap-2 text-sm text-background/70">
                 <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
