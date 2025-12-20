@@ -95,7 +95,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
           {/* Category & Condition */}
           <div className="flex items-center justify-between">
             <Badge variant="secondary" className="text-xs">{product.category}</Badge>
@@ -105,7 +105,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Title */}
-          <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-medium text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">
             {product.title}
           </h3>
 
@@ -132,7 +132,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-end justify-between pt-2 border-t border-border">
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-primary">₹{product.price.toLocaleString()}</span>
+                <span className="text-lg font-bold text-primary">₹{product.price.toLocaleString()}</span>
                 {product.originalPrice && (
                   <span className="text-sm text-muted-foreground line-through">
                     ₹{product.originalPrice.toLocaleString()}
