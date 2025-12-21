@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Clock, Eye } from "lucide-react";
+import { Heart, MapPin, Clock, Eye, Maximize2 } from "lucide-react";
 
 export interface Product {
   id: string;
@@ -28,6 +28,7 @@ export interface Product {
 
 interface ProductCardProps {
   product: Product;
+  onQuickView?: (product: Product) => void;
 }
 
 const conditionColors = {
@@ -44,14 +45,14 @@ const conditionLabels = {
   fair: "Fair",
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
   return (
     <Link to={`/product/${product.id}`}>
-      <Card variant="product" className="group h-full">
+      <Card variant="product" className="group h-full relative">
         {/* Image Container */}
         <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
           <img
@@ -73,18 +74,33 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
           
-          {/* Wishlist button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 right-3 bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-            onClick={(e) => {
-              e.preventDefault();
-              // Add to wishlist logic
-            }}
-          >
-            <Heart className="h-4 w-4" />
-          </Button>
+          {/* Action buttons */}
+          <div className="absolute top-3 right-3 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-background/80 hover:bg-background h-8 w-8"
+              onClick={(e) => {
+                e.preventDefault();
+                // Add to wishlist logic
+              }}
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+            {onQuickView && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-background/80 hover:bg-background h-8 w-8"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onQuickView(product);
+                }}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           
           {/* Sold overlay */}
           {product.isSold && (
