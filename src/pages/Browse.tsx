@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ProductCard } from "@/components/products/ProductCard";
+import { ProductCard, Product } from "@/components/products/ProductCard";
+import { QuickViewModal } from "@/components/products/QuickViewModal";
 import { MOCK_PRODUCTS, CATEGORIES, GGSIPU_COLLEGES } from "@/data/mockData";
 import {
   Search,
@@ -40,6 +41,7 @@ const BrowsePage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("recent");
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const toggleCondition = (condition: string) => {
     setSelectedConditions((prev) =>
@@ -277,7 +279,11 @@ const BrowsePage = () => {
                 }`}
               >
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onQuickView={setQuickViewProduct}
+                  />
                 ))}
               </div>
             ) : (
@@ -294,6 +300,13 @@ const BrowsePage = () => {
             )}
           </div>
         </div>
+
+        {/* Quick View Modal */}
+        <QuickViewModal
+          product={quickViewProduct}
+          open={!!quickViewProduct}
+          onOpenChange={(open) => !open && setQuickViewProduct(null)}
+        />
       </div>
     </Layout>
   );
