@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MOCK_PRODUCTS } from "@/data/mockData";
 import { UpiPaymentDialog } from "@/components/payments/UpiPaymentDialog";
+import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import {
   Heart,
   Share2,
@@ -30,12 +32,20 @@ import { useToast } from "@/hooks/use-toast";
 const ProductDetail = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
 
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
+
+  // Track product view
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed(product);
+    }
+  }, [product, addToRecentlyViewed]);
 
   if (!product) {
     return (
@@ -349,6 +359,14 @@ const ProductDetail = () => {
             </div>
           </div>
         </Card>
+
+        {/* Recently Viewed Section */}
+        <RecentlyViewedSection
+          products={recentlyViewed}
+          excludeId={id}
+          onClear={clearRecentlyViewed}
+          title="Recently Viewed"
+        />
       </div>
 
       {/* UPI Payment Dialog */}
