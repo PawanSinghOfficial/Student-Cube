@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ProductCard, Product } from "@/components/products/ProductCard";
 import { QuickViewModal } from "@/components/products/QuickViewModal";
+import { CompareBar } from "@/components/products/CompareBar";
 import { MOCK_PRODUCTS, CATEGORIES, GGSIPU_COLLEGES } from "@/data/mockData";
 import {
   Search,
@@ -80,7 +81,7 @@ const BrowsePage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-32">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Browse Products</h1>
@@ -307,6 +308,9 @@ const BrowsePage = () => {
           open={!!quickViewProduct}
           onOpenChange={(open) => !open && setQuickViewProduct(null)}
         />
+
+        {/* Compare Bar */}
+        <CompareBar />
       </div>
     </Layout>
   );
