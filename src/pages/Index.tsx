@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ProductCard } from "@/components/products/ProductCard";
 import { CategoryCard } from "@/components/products/CategoryCard";
+import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
 import {
   ArrowRight,
@@ -82,6 +84,7 @@ const howItWorks = [
 ];
 
 const Index = () => {
+  const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const featuredProducts = MOCK_PRODUCTS.filter((p) => p.isFeatured);
   const recentProducts = MOCK_PRODUCTS.slice(0, 4);
 
@@ -271,7 +274,18 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Safety Section */}
+      {/* Recently Viewed Section */}
+      {recentlyViewed.length > 0 && (
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <RecentlyViewedSection
+              products={recentlyViewed}
+              onClear={clearRecentlyViewed}
+              title="Continue Where You Left Off"
+            />
+          </div>
+        </section>
+      )}
       <section id="safety" className="py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
