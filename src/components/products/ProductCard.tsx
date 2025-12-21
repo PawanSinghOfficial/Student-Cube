@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Clock, Eye, Maximize2 } from "lucide-react";
+import { Heart, MapPin, Clock, Eye, Maximize2, GitCompare, Check } from "lucide-react";
+import { useCompare } from "@/contexts/CompareContext";
 
 export interface Product {
   id: string;
@@ -29,6 +30,7 @@ export interface Product {
 interface ProductCardProps {
   product: Product;
   onQuickView?: (product: Product) => void;
+  showCompare?: boolean;
 }
 
 const conditionColors = {
@@ -45,10 +47,22 @@ const conditionLabels = {
   fair: "Fair",
 };
 
-export function ProductCard({ product, onQuickView }: ProductCardProps) {
+export function ProductCard({ product, onQuickView, showCompare = true }: ProductCardProps) {
+  const { addToCompare, removeFromCompare, isInCompare, compareProducts, maxProducts } = useCompare();
+  const inCompare = isInCompare(product.id);
+  
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (inCompare) {
+      removeFromCompare(product.id);
+    } else if (compareProducts.length < maxProducts) {
+      addToCompare(product);
+    }
+  };
 
   return (
     <Link to={`/product/${product.id}`}>
@@ -98,6 +112,17 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
                 }}
               >
                 <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+            {showCompare && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${inCompare ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-background/80 hover:bg-background"}`}
+                onClick={handleCompareClick}
+                disabled={!inCompare && compareProducts.length >= maxProducts}
+              >
+                {inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />}
               </Button>
             )}
           </div>
