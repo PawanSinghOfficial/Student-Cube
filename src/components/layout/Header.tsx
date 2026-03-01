@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +39,8 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-md">
-              <span className="text-primary-foreground font-bold text-lg">IK</span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-background shadow-md">
+              <img src={logo} alt="IPU KA ADDA logo" className="w-full h-full object-contain" />
             </div>
             <div className="hidden sm:block">
               <span className="font-bold text-xl text-foreground">IPU KA</span>
