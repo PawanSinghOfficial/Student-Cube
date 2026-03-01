@@ -25,7 +25,7 @@ export function Footer() {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-accent transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-primary transition-colors">
+              <a href="https://www.linkedin.com/in/pawan-singh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-primary transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
@@ -76,7 +76,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Mail className="h-4 w-4 text-accent" />
-                support@ipukaadda.com
+                codedbypawan@gmail.com
               </li>
               <li className="flex items-start gap-2 text-sm text-background/70">
                 <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
@@ -89,7 +89,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-background/20">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-background/60">
-              © 2024 IPU KA ADDA. All rights reserved. Made with ❤️ for GGSIPU students.
+              © 2026 IPU KA ADDA. All rights reserved. Made with ❤️ for GGSIPU students.
             </p>
             <div className="flex gap-6">
               <Link to="/privacy" className="text-sm text-background/60 hover:text-accent transition-colors">
