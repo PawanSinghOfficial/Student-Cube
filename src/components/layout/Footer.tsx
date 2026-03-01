@@ -25,7 +25,7 @@ export function Footer() {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-accent transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://www.linkedin.com/in/pawan-singh" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-primary transition-colors">
+              <a href="https://www.linkedin.com/in/pawansinghmahori" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-background/10 hover:bg-primary transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
