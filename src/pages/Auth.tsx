@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setIsAdmin } = useAuth();
   const [mode, setMode] = useState<"login" | "signup" | "admin">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
   );
@@ -46,6 +48,7 @@ const AuthPage = () => {
 
   const handleAdminVerifyOTP = () => {
     if (formData.adminOtp === "123456" || formData.adminOtp.length === 6) {
+      setIsAdmin(true);
       toast({ title: "Admin Access Granted!", description: "Welcome, Admin!" });
       navigate("/admin");
     } else {

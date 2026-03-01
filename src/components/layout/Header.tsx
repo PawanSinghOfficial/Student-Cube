@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ const navigation = [
 
 export function Header() {
   const location = useLocation();
+  const { isAdmin } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -76,12 +78,14 @@ export function Header() {
                 </Link>
               );
             })}
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="gap-2 ml-2">
-                <Shield className="h-4 w-4" />
-                Admin
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="outline" size="sm" className="gap-2 ml-2">
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Auth Buttons - Desktop */}
@@ -142,12 +146,14 @@ export function Header() {
                 </Link>
               );
             })}
-            <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" className="w-full justify-start gap-3 mt-2">
-                <Shield className="h-5 w-5" />
-                Admin Portal
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full justify-start gap-3 mt-2">
+                  <Shield className="h-5 w-5" />
+                  Admin Portal
+                </Button>
+              </Link>
+            )}
             <div className="pt-4 flex gap-2">
               <Link to="/auth" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">Login</Button>
