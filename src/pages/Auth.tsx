@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -94,8 +95,8 @@ const AuthPage = () => {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                <span className="text-primary-foreground font-bold text-xl">IK</span>
+              <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center bg-background shadow-lg">
+                <img src={logo} alt="IPU KA ADDA logo" className="w-full h-full object-contain" />
               </div>
             </Link>
             <h1 className="text-3xl font-bold text-foreground">
