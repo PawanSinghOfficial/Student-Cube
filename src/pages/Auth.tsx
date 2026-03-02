@@ -61,8 +61,9 @@ const AuthPage = () => {
 
         toast({
           title: "Account Created!",
-          description: "Please check your email to verify your account before logging in.",
+          description: "Welcome to IPU KA ADDA!",
         });
+        navigate("/");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
