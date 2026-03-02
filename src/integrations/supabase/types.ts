@@ -14,13 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          reward_duration_hours: number
+          reward_expiry_time: string
+          reward_start_time: string
+          user_id: string
+          wheel_used: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reward_duration_hours: number
+          reward_expiry_time: string
+          reward_start_time?: string
+          user_id: string
+          wheel_used?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reward_duration_hours?: number
+          reward_expiry_time?: string
+          reward_start_time?: string
+          user_id?: string
+          wheel_used?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_reward_record: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
