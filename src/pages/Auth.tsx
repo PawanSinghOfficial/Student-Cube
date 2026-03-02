@@ -75,9 +75,12 @@ const AuthPage = () => {
         navigate("/");
       }
     } catch (error: any) {
+      const message = error.message === "Failed to fetch"
+        ? "Network error. Please check your internet connection and try again."
+        : error.message || "Something went wrong";
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: message,
         variant: "destructive",
       });
     } finally {
