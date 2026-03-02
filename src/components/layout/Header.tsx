@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRewardTimer } from "@/hooks/useRewardTimer";
 import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,9 @@ import {
   Tag, 
   MessageCircle, 
   User,
-  Shield
+  Shield,
+  Clock,
+  LogOut
 } from "lucide-react";
 
 const navigation = [
@@ -27,9 +30,12 @@ const navigation = [
 
 export function Header() {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user, signOut } = useAuth();
+  const rewardTimer = useRewardTimer();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -89,14 +95,29 @@ export function Header() {
             )}
           </div>
 
-          {/* Auth Buttons - Desktop */}
+          {/* Reward Timer + Auth - Desktop */}
           <div className="hidden md:flex items-center gap-2">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm">Login</Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button variant="accent" size="sm">Sign Up</Button>
-            </Link>
+            {rewardTimer.isActive && (
+              <Badge variant="secondary" className="gap-1 text-xs font-mono bg-success/10 text-success border-success/30">
+                <Clock className="h-3 w-3" />
+                {pad(rewardTimer.hours)}:{pad(rewardTimer.minutes)}:{pad(rewardTimer.seconds)} Free
+              </Badge>
+            )}
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={signOut} className="gap-1">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">Login</Button>
+                </Link>
+                <Link to="/auth?mode=signup">
+                  <Button variant="accent" size="sm">Sign Up</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -156,12 +177,21 @@ export function Header() {
               </Link>
             )}
             <div className="pt-4 flex gap-2">
-              <Link to="/auth" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full">Login</Button>
-              </Link>
-              <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="accent" className="w-full">Sign Up</Button>
-              </Link>
+              {user ? (
+                <Button variant="outline" className="w-full" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <>
+                  <Link to="/auth" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">Login</Button>
+                  </Link>
+                  <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="accent" className="w-full">Sign Up</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
