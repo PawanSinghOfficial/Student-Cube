@@ -6,22 +6,22 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
-  setIsAdmin: (val: boolean) => void;
   isLoading: boolean;
   isFirstLogin: boolean;
   setIsFirstLogin: (val: boolean) => void;
   signOut: () => Promise<void>;
+  checkAdminStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   isAdmin: false,
-  setIsAdmin: () => {},
   isLoading: true,
   isFirstLogin: false,
   setIsFirstLogin: () => {},
   signOut: async () => {},
+  checkAdminStatus: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -31,8 +31,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
+  const checkAdminStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-admin");
+      if (!error && data?.isAdmin) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } catch {
+      setIsAdmin(false);
+    }
+  };
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
@@ -40,23 +52,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
 
         if (event === "SIGNED_IN" && session?.user) {
-          // Check if user has already used the wheel
+          // Check first login (reward wheel)
           setTimeout(async () => {
             const { data } = await supabase
               .from("user_rewards")
               .select("id")
               .eq("user_id", session.user.id)
               .maybeSingle();
-
-            if (!data) {
-              setIsFirstLogin(true);
-            }
+            if (!data) setIsFirstLogin(true);
           }, 0);
 
-          // Check admin
-          if (session.user.email === "codedbypawan@gmail.com") {
-            setIsAdmin(true);
-          }
+          // Check admin role
+          setTimeout(() => checkAdminStatus(), 0);
         }
 
         if (event === "SIGNED_OUT") {
@@ -66,11 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+      if (session?.user) {
+        checkAdminStatus();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -81,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, setIsAdmin, isLoading, isFirstLogin, setIsFirstLogin, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, isFirstLogin, setIsFirstLogin, signOut, checkAdminStatus }}>
       {children}
     </AuthContext.Provider>
   );
