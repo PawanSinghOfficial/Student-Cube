@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowRight, Eye, EyeOff, User } from "lucide-react";
+import { Mail, ArrowRight, Eye, EyeOff, User, Shield } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [mode, setMode] = useState<"login" | "signup">(
+  const { checkAdminStatus } = useAuth();
+  const [mode, setMode] = useState<"login" | "signup" | "admin">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
   );
   const [showPassword, setShowPassword] = useState(false);
@@ -64,6 +66,32 @@ const AuthPage = () => {
           description: "Welcome to IPU KA ADDA!",
         });
         navigate("/");
+      } else if (mode === "admin") {
+        // Admin login - same as regular login but verify admin role after
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        // Check admin role server-side
+        const { data, error: fnError } = await supabase.functions.invoke("check-admin");
+
+        if (fnError || !data?.isAdmin) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Access Denied",
+            description: "This account does not have admin privileges.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        await checkAdminStatus();
+        toast({ title: "Admin Access Granted!", description: "Welcome, Admin!" });
+        navigate("/admin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -101,12 +129,14 @@ const AuthPage = () => {
               </div>
             </Link>
             <h1 className="text-3xl font-bold text-foreground">
-              {mode === "login" ? "Welcome Back!" : "Create Account"}
+              {mode === "login" ? "Welcome Back!" : mode === "signup" ? "Create Account" : "Admin Login"}
             </h1>
             <p className="text-muted-foreground mt-2">
               {mode === "login"
                 ? "Sign in to continue to IPU KA ADDA"
-                : "Join the GGSIPU student marketplace"}
+                : mode === "signup"
+                ? "Join the GGSIPU student marketplace"
+                : "Sign in with your admin credentials"}
             </p>
           </div>
 
@@ -130,6 +160,18 @@ const AuthPage = () => {
                 }`}
               >
                 Sign Up
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("admin")}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  mode === "admin" ? "bg-background shadow" : "text-muted-foreground"
+                }`}
+              >
+                <span className="flex items-center justify-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Admin
+                </span>
               </button>
             </div>
 
@@ -171,13 +213,15 @@ const AuthPage = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">
+                  {mode === "admin" ? "Admin Email" : "Email Address"}
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your.email@example.com"
+                    placeholder={mode === "admin" ? "admin@example.com" : "your.email@example.com"}
                     className="pl-10"
                     value={formData.email}
                     onChange={(e) => updateForm("email", e.target.value)}
@@ -209,28 +253,36 @@ const AuthPage = () => {
               </div>
 
               <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
+                {loading
+                  ? "Please wait..."
+                  : mode === "login"
+                  ? "Sign In"
+                  : mode === "signup"
+                  ? "Create Account"
+                  : "Sign In as Admin"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </form>
 
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              {mode === "login" ? (
-                <>
-                  Don't have an account?{" "}
-                  <button type="button" onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">
-                    Sign up
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{" "}
-                  <button type="button" onClick={() => setMode("login")} className="text-primary font-medium hover:underline">
-                    Login
-                  </button>
-                </>
-              )}
-            </p>
+            {mode !== "admin" && (
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                {mode === "login" ? (
+                  <>
+                    Don't have an account?{" "}
+                    <button type="button" onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">
+                      Sign up
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{" "}
+                    <button type="button" onClick={() => setMode("login")} className="text-primary font-medium hover:underline">
+                      Login
+                    </button>
+                  </>
+                )}
+              </p>
+            )}
           </Card>
 
           <p className="text-center text-xs text-muted-foreground mt-6">
