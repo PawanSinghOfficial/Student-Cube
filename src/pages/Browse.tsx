@@ -76,6 +76,15 @@ const BrowsePage = () => {
     if (selectedConditions.length > 0 && !selectedConditions.includes(product.condition)) {
       return false;
     }
+    if (selectedPriceRange) {
+      const range = priceRanges.find((r) => r.id === selectedPriceRange);
+      if (range && (product.price < range.min || product.price > range.max)) {
+        return false;
+      }
+    }
+    if (selectedCollege && !product.college.toLowerCase().includes(selectedCollege.toLowerCase().split(" - ")[0])) {
+      return false;
+    }
     return true;
   });
 
