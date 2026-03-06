@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      listings: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          category: string
+          college: string
+          condition: string
+          created_at: string
+          description: string
+          id: string
+          image_urls: string[]
+          original_price: number | null
+          price: number
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          category: string
+          college: string
+          condition: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[]
+          original_price?: number | null
+          price: number
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          category?: string
+          college?: string
+          condition?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[]
+          original_price?: number | null
+          price?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
