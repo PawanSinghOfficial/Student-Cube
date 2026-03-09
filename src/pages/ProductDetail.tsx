@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
