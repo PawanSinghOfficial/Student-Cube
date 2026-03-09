@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -305,9 +306,13 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate(`/chat?listing=${id}`)}
+                >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {contactUnlocked ? "Free Chat" : "Quick Chat"}
+                  Chat with Seller
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />
