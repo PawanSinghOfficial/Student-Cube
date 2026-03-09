@@ -306,9 +306,13 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate(`/chat?listing=${id}`)}
+                >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {contactUnlocked ? "Free Chat" : "Quick Chat"}
+                  Chat with Seller
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />
