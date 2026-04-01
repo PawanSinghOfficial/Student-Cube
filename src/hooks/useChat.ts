@@ -91,11 +91,19 @@ export function useChat() {
   const sendMessage = useCallback(async (content: string) => {
     if (!user || !activeConversation) return false;
 
-    const { error } = await supabase.from("messages").insert({
+    const { data, error } = await supabase.from("messages").insert({
       conversation_id: activeConversation.id,
       sender_id: user.id,
       content,
-    });
+    }).select().single();
+
+    if (!error && data) {
+      // Add message immediately for sender (realtime will deduplicate)
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    }
 
     return !error;
   }, [user, activeConversation]);
@@ -151,7 +159,11 @@ export function useChat() {
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          setMessages((prev) => [...prev, newMsg]);
+          setMessages((prev) => {
+            // Avoid duplicates (sender already added optimistically or via insert response)
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
         }
       )
       .subscribe();
