@@ -22,6 +22,7 @@ export interface Message {
   sender_id: string;
   content: string;
   created_at: string;
+  read_at: string | null;
 }
 
 export function useChat() {
