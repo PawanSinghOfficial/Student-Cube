@@ -173,12 +173,24 @@ const ChatPage = () => {
                             )}
                           >
                             <p>{msg.content}</p>
-                            <p className={cn(
-                              "text-[10px] mt-1",
-                              isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
+                            <div className={cn(
+                              "flex items-center gap-1 mt-1",
+                              isOwn ? "justify-end" : "justify-start"
                             )}>
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </p>
+                              <p className={cn(
+                                "text-[10px]",
+                                isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
+                              )}>
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                              {isOwn && (
+                                msg.read_at ? (
+                                  <CheckCheck className="h-3 w-3 text-primary-foreground" />
+                                ) : (
+                                  <Check className="h-3 w-3 text-primary-foreground/70" />
+                                )
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
