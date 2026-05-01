@@ -143,27 +143,39 @@ export function useChat() {
     fetchMessages(convo.id);
   }, [fetchMessages]);
 
-  // Realtime subscription for new messages
+  // Global realtime subscription for ALL messages the user is part of.
+  // This ensures recipients get messages instantly even if they haven't
+  // opened that specific conversation, and the sidebar refreshes.
   useEffect(() => {
-    if (!activeConversation) return;
+    if (!user) return;
 
     const channel = supabase
-      .channel(`messages-${activeConversation.id}`)
+      .channel(`user-messages-${user.id}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `conversation_id=eq.${activeConversation.id}`,
         },
         (payload) => {
           const newMsg = payload.new as Message;
+
+          // Append to active conversation thread (with dedup)
           setMessages((prev) => {
-            // Avoid duplicates (sender already added optimistically or via insert response)
+            if (newMsg.conversation_id !== activeConversation?.id) return prev;
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
+
+          // Update sidebar last_message preview
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === newMsg.conversation_id
+                ? { ...c, last_message: newMsg.content, updated_at: newMsg.created_at }
+                : c
+            )
+          );
         }
       )
       .subscribe();
@@ -171,7 +183,7 @@ export function useChat() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeConversation]);
+  }, [user, activeConversation]);
 
   // Initial fetch
   useEffect(() => {
