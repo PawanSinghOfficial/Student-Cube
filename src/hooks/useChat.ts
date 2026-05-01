@@ -138,15 +138,33 @@ export function useChat() {
     return created;
   }, [user]);
 
+  // Mark all unread messages from the OTHER party as read
+  const markConversationRead = useCallback(async (conversationId: string) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("conversation_id", conversationId)
+      .neq("sender_id", user.id)
+      .is("read_at", null)
+      .select();
+
+    if (data && data.length > 0) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          data.find((d) => d.id === m.id) ? { ...m, read_at: data[0].read_at } : m
+        )
+      );
+    }
+  }, [user]);
+
   // Set active and load messages
   const selectConversation = useCallback((convo: Conversation) => {
     setActiveConversation(convo);
-    fetchMessages(convo.id);
-  }, [fetchMessages]);
+    fetchMessages(convo.id).then(() => markConversationRead(convo.id));
+  }, [fetchMessages, markConversationRead]);
 
   // Global realtime subscription for ALL messages the user is part of.
-  // This ensures recipients get messages instantly even if they haven't
-  // opened that specific conversation, and the sidebar refreshes.
   useEffect(() => {
     if (!user) return;
 
@@ -154,20 +172,22 @@ export function useChat() {
       .channel(`user-messages-${user.id}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
+        { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           const newMsg = payload.new as Message;
+          const isActive = newMsg.conversation_id === activeConversation?.id;
 
           // Append to active conversation thread (with dedup)
-          setMessages((prev) => {
-            if (newMsg.conversation_id !== activeConversation?.id) return prev;
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
+          if (isActive) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+            // Auto-mark incoming messages as read while viewing
+            if (newMsg.sender_id !== user.id) {
+              markConversationRead(newMsg.conversation_id);
+            }
+          }
 
           // Update sidebar last_message preview
           setConversations((prev) =>
@@ -179,12 +199,22 @@ export function useChat() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
+        (payload) => {
+          const updated = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m))
+          );
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, activeConversation]);
+  }, [user, activeConversation, markConversationRead]);
 
   // Initial fetch
   useEffect(() => {
