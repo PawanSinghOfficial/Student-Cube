@@ -9,11 +9,15 @@ import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, Ch
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat, Conversation } from "@/hooks/useChat";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const ChatPage = () => {
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     conversations,
     activeConversation,
@@ -23,11 +27,54 @@ const ChatPage = () => {
     selectConversation,
     sendMessage,
     setActiveConversation,
+    getOrCreateConversation,
+    fetchConversations,
   } = useChat();
 
   const [messageInput, setMessageInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [initializing, setInitializing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-open conversation from ?listing=<id> URL param
+  useEffect(() => {
+    const listingId = searchParams.get("listing");
+    if (!listingId || !user || initializing) return;
+
+    const init = async () => {
+      setInitializing(true);
+      try {
+        const { data: listing, error } = await supabase
+          .from("listings")
+          .select("user_id, title")
+          .eq("id", listingId)
+          .maybeSingle();
+
+        if (error || !listing) {
+          toast({ title: "Listing not found", variant: "destructive" });
+          setSearchParams({});
+          return;
+        }
+        if (listing.user_id === user.id) {
+          toast({ title: "This is your listing", description: "You cannot chat with yourself.", variant: "destructive" });
+          setSearchParams({});
+          return;
+        }
+
+        const convo = await getOrCreateConversation(listingId, listing.user_id);
+        if (convo) {
+          await fetchConversations();
+          // Find enriched copy if present, otherwise use raw
+          selectConversation(convo as Conversation);
+        }
+      } finally {
+        setInitializing(false);
+        setSearchParams({});
+      }
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
