@@ -11,8 +11,10 @@ import { useNavigate } from "react-router-dom";
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<{ first_name: string; username: string; email: string } | null>(null);
   const [listingsCount, setListingsCount] = useState(0);
+  const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
