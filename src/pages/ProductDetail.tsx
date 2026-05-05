@@ -114,6 +114,18 @@ const ProductDetail = () => {
 
   const images = product.image_urls?.length ? product.image_urls : ["/placeholder.svg"];
   const isOwnListing = user?.id === product.user_id;
+  const isSold = product.status === "sold";
+
+  const handleMarkSold = async () => {
+    if (!user || !isOwnListing) return;
+    const { error } = await supabase.from("listings").update({ status: "sold" }).eq("id", product.id).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Failed to mark sold", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProduct({ ...product, status: "sold" });
+    toast({ title: "Listing marked as sold", description: "Your listing now shows a SOLD badge." });
+  };
 
   const handleContactSeller = () => setShowPaymentDialog(true);
   const handlePaymentComplete = () => {
