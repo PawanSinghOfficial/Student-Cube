@@ -114,6 +114,18 @@ const ProductDetail = () => {
 
   const images = product.image_urls?.length ? product.image_urls : ["/placeholder.svg"];
   const isOwnListing = user?.id === product.user_id;
+  const isSold = product.status === "sold";
+
+  const handleMarkSold = async () => {
+    if (!user || !isOwnListing) return;
+    const { error } = await supabase.from("listings").update({ status: "sold" }).eq("id", product.id).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Failed to mark sold", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProduct({ ...product, status: "sold" });
+    toast({ title: "Listing marked as sold", description: "Your listing now shows a SOLD badge." });
+  };
 
   const handleContactSeller = () => setShowPaymentDialog(true);
   const handlePaymentComplete = () => {
@@ -180,8 +192,13 @@ const ProductDetail = () => {
                 </>
               )}
               <div className="absolute top-4 left-4 flex gap-2">
-                {discount > 0 && <Badge variant="accent">{discount}% OFF</Badge>}
+                {discount > 0 && !isSold && <Badge variant="accent">{discount}% OFF</Badge>}
               </div>
+              {isSold && (
+                <div className="absolute inset-0 bg-foreground/70 flex items-center justify-center">
+                  <Badge variant="destructive" className="text-2xl px-6 py-3">SOLD</Badge>
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -263,7 +280,12 @@ const ProductDetail = () => {
             </Card>
 
             <div className="space-y-3">
-              {contactUnlocked ? (
+              {isSold ? (
+                <Card className="p-4 bg-destructive/10 border-destructive/30 text-center">
+                  <p className="font-semibold text-destructive">This item is sold</p>
+                  <p className="text-sm text-muted-foreground mt-1">The seller is no longer accepting offers.</p>
+                </Card>
+              ) : contactUnlocked ? (
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
                 </Button>
@@ -273,14 +295,19 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing}>
+                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isSold}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {isOwnListing ? "Your listing" : "Chat with Seller"}
+                  {isSold ? "Sold" : isOwnListing ? "Your listing" : "Chat with Seller"}
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
+              {isOwnListing && !isSold && (
+                <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
+                  Mark as Sold
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">

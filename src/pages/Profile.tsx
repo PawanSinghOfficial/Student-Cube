@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { User, ShoppingBag, Tag, Star, CreditCard, Gift, Settings, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<{ first_name: string; username: string; email: string } | null>(null);
   const [listingsCount, setListingsCount] = useState(0);
+  const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
@@ -23,17 +26,33 @@ const ProfilePage = () => {
     }
 
     const fetchProfile = async () => {
-      const [{ data: profileData }, { count }] = await Promise.all([
+      const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
         supabase.from("profiles").select("first_name, username, email").eq("user_id", user.id).maybeSingle(),
-        supabase.from("listings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase
+          .from("listings")
+          .select("id, title, price, status, image_urls", { count: "exact" })
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
       if (profileData) setProfile(profileData);
       setListingsCount(count || 0);
+      setMyListings(listingsData || []);
       setProfileLoading(false);
     };
 
     fetchProfile();
   }, [user, authLoading]);
+
+  const handleMarkSold = async (listingId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("listings").update({ status: "sold" }).eq("id", listingId).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Failed to mark sold", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMyListings((prev) => prev.map((l) => (l.id === listingId ? { ...l, status: "sold" } : l)));
+    toast({ title: "Marked as sold" });
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -131,6 +150,35 @@ const ProfilePage = () => {
               </Button>
             )}
           </Card>
+
+          {!isGuest && myListings.length > 0 && (
+            <Card className="p-6 mt-6">
+              <h2 className="font-bold text-lg mb-4">My Listings</h2>
+              <div className="space-y-3">
+                {myListings.map((l) => (
+                  <div key={l.id} className="flex items-center gap-4 p-3 border border-border rounded-lg">
+                    <Link to={`/product/${l.id}`} className="shrink-0">
+                      <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
+                        <Badge variant={l.status === "sold" ? "destructive" : l.status === "approved" ? "success" : "pending"} className="text-xs capitalize">
+                          {l.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    {l.status === "approved" && (
+                      <Button size="sm" variant="outline" onClick={() => handleMarkSold(l.id)}>
+                        Mark Sold
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </Layout>
