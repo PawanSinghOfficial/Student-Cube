@@ -280,7 +280,12 @@ const ProductDetail = () => {
             </Card>
 
             <div className="space-y-3">
-              {contactUnlocked ? (
+              {isSold ? (
+                <Card className="p-4 bg-destructive/10 border-destructive/30 text-center">
+                  <p className="font-semibold text-destructive">This item is sold</p>
+                  <p className="text-sm text-muted-foreground mt-1">The seller is no longer accepting offers.</p>
+                </Card>
+              ) : contactUnlocked ? (
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
                 </Button>
@@ -290,14 +295,19 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing}>
+                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isSold}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {isOwnListing ? "Your listing" : "Chat with Seller"}
+                  {isSold ? "Sold" : isOwnListing ? "Your listing" : "Chat with Seller"}
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
+              {isOwnListing && !isSold && (
+                <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
+                  Mark as Sold
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">
