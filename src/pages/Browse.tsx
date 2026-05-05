@@ -60,7 +60,7 @@ const BrowsePage = () => {
       const { data: listings } = await supabase
         .from("listings")
         .select("*")
-        .eq("status", "approved")
+        .in("status", ["approved", "sold"])
         .order("created_at", { ascending: false });
 
       if (!listings) {
