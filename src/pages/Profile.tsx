@@ -150,6 +150,35 @@ const ProfilePage = () => {
               </Button>
             )}
           </Card>
+
+          {!isGuest && myListings.length > 0 && (
+            <Card className="p-6 mt-6">
+              <h2 className="font-bold text-lg mb-4">My Listings</h2>
+              <div className="space-y-3">
+                {myListings.map((l) => (
+                  <div key={l.id} className="flex items-center gap-4 p-3 border border-border rounded-lg">
+                    <Link to={`/product/${l.id}`} className="shrink-0">
+                      <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
+                        <Badge variant={l.status === "sold" ? "destructive" : l.status === "approved" ? "success" : "pending"} className="text-xs capitalize">
+                          {l.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    {l.status === "approved" && (
+                      <Button size="sm" variant="outline" onClick={() => handleMarkSold(l.id)}>
+                        Mark Sold
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </Layout>
