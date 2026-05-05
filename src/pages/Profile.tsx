@@ -26,17 +26,33 @@ const ProfilePage = () => {
     }
 
     const fetchProfile = async () => {
-      const [{ data: profileData }, { count }] = await Promise.all([
+      const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
         supabase.from("profiles").select("first_name, username, email").eq("user_id", user.id).maybeSingle(),
-        supabase.from("listings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase
+          .from("listings")
+          .select("id, title, price, status, image_urls", { count: "exact" })
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
       if (profileData) setProfile(profileData);
       setListingsCount(count || 0);
+      setMyListings(listingsData || []);
       setProfileLoading(false);
     };
 
     fetchProfile();
   }, [user, authLoading]);
+
+  const handleMarkSold = async (listingId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("listings").update({ status: "sold" }).eq("id", listingId).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Failed to mark sold", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMyListings((prev) => prev.map((l) => (l.id === listingId ? { ...l, status: "sold" } : l)));
+    toast({ title: "Marked as sold" });
+  };
 
   const handleSignOut = async () => {
     await signOut();
