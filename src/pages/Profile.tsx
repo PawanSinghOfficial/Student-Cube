@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { User, ShoppingBag, Tag, Star, CreditCard, Gift, Settings, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
