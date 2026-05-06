@@ -31,19 +31,21 @@ const App = () => (
         <CompareProvider>
           <Toaster />
           <Sonner />
-          <SpinWheelDialog />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/browse" element={<Browse />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/sell" element={<Sell />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/admin" element={<ProtectedAdminRoute />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <WishlistProvider>
+              <SpinWheelDialog />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/browse" element={<Browse />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/sell" element={<Sell />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/admin" element={<ProtectedAdminRoute />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </WishlistProvider>
           </BrowserRouter>
         </CompareProvider>
       </AuthProvider>
