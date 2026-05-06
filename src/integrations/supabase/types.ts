@@ -245,6 +245,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          created_at: string
+          first_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       has_reward_record: { Args: never; Returns: boolean }
       has_role: {
         Args: {
