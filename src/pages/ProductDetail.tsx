@@ -201,10 +201,10 @@ const ProductDetail = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`absolute top-4 right-4 bg-background/80 hover:bg-background ${isWishlisted ? "text-destructive" : ""}`}
+                className={`absolute top-4 right-4 bg-background/80 hover:bg-background ${wishlisted ? "text-destructive" : ""}`}
                 onClick={handleWishlist}
               >
-                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current" : ""}`} />
+                <Heart className={`h-5 w-5 ${wishlisted ? "fill-current" : ""}`} />
               </Button>
             </div>
 
