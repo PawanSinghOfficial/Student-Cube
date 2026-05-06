@@ -138,12 +138,9 @@ const ProductDetail = () => {
     navigator.clipboard.writeText(text);
     toast({ title: `${label} Copied!`, description: `${text} has been copied to clipboard.` });
   };
+  const wishlisted = product ? isInWishlist(product.id) : false;
   const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    toast({
-      title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
-      description: isWishlisted ? "Item removed from your wishlist" : "You'll be notified of price changes",
-    });
+    if (product) toggleWishlist(product.id);
   };
   const handleChatClick = () => {
     if (!user) {
