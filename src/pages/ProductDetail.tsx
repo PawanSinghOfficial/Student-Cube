@@ -10,6 +10,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { UpiPaymentDialog } from "@/components/payments/UpiPaymentDialog";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
@@ -51,6 +52,9 @@ const ProductDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [product, setProduct] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,6 +96,33 @@ const ProductDetail = () => {
     };
     load();
   }, [id, addToRecentlyViewed]);
+
+  useEffect(() => {
+    if (!id || !user || !product || product.user_id === user.id) {
+      setCanReview(false);
+      return;
+    }
+    const check = async () => {
+      const [{ data: convo }, { data: existing }] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id")
+          .eq("buyer_id", user.id)
+          .eq("seller_id", product.user_id)
+          .eq("listing_id", id)
+          .maybeSingle(),
+        supabase
+          .from("reviews")
+          .select("id")
+          .eq("reviewer_id", user.id)
+          .eq("listing_id", id)
+          .maybeSingle(),
+      ]);
+      setCanReview(!!convo);
+      setAlreadyReviewed(!!existing);
+    };
+    check();
+  }, [id, user, product]);
 
   if (loading) {
     return (
@@ -310,6 +341,18 @@ const ProductDetail = () => {
                   Mark as Sold
                 </Button>
               )}
+              {canReview && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full gap-2"
+                  onClick={() => setShowReviewDialog(true)}
+                  disabled={alreadyReviewed}
+                >
+                  <Star className="h-4 w-4" />
+                  {alreadyReviewed ? "You've reviewed this seller" : "Leave a Review"}
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">
@@ -353,6 +396,16 @@ const ProductDetail = () => {
         purpose="Contact Access Fee - IPU KA ADDA"
         onPaymentComplete={handlePaymentComplete}
       />
+
+      {product && (
+        <ReviewDialog
+          open={showReviewDialog}
+          onOpenChange={setShowReviewDialog}
+          sellerId={product.user_id}
+          listingId={product.id}
+          onSubmitted={() => setAlreadyReviewed(true)}
+        />
+      )}
     </Layout>
   );
 };
