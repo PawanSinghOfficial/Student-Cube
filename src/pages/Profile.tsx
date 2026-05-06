@@ -18,6 +18,24 @@ const ProfilePage = () => {
   const [listingsCount, setListingsCount] = useState(0);
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
+  const { wishlistIds, toggleWishlist } = useWishlist();
+  const [wishlistItems, setWishlistItems] = useState<Array<{ id: string; title: string; price: number; image_urls: string[]; status: string }>>([]);
+
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      const ids = Array.from(wishlistIds);
+      if (ids.length === 0) {
+        setWishlistItems([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("listings")
+        .select("id, title, price, image_urls, status")
+        .in("id", ids);
+      setWishlistItems(data || []);
+    };
+    fetchWishlist();
+  }, [wishlistIds]);
 
   useEffect(() => {
     if (authLoading) return;
