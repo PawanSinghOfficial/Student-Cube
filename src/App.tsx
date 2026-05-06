@@ -43,6 +43,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:userId" element={<PublicProfile />} />
                 <Route path="/admin" element={<ProtectedAdminRoute />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
