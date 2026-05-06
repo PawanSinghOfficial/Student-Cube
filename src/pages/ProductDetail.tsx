@@ -52,6 +52,9 @@ const ProductDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [product, setProduct] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
