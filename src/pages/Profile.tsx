@@ -198,6 +198,37 @@ const ProfilePage = () => {
               </div>
             </Card>
           )}
+
+          {!isGuest && (
+            <Card className="p-6 mt-6">
+              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <Heart className="h-5 w-5 text-destructive fill-current" /> My Wishlist
+              </h2>
+              {wishlistItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No items in your wishlist yet. Tap the heart on any product to save it.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {wishlistItems.map((l) => (
+                    <div key={l.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                      <Link to={`/product/${l.id}`} className="shrink-0">
+                        <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
+                          {l.status === "sold" && <Badge variant="destructive" className="text-xs">Sold</Badge>}
+                        </div>
+                      </div>
+                      <Button size="icon" variant="ghost" onClick={() => toggleWishlist(l.id)}>
+                        <Heart className="h-4 w-4 fill-current text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
         </div>
       </div>
     </Layout>
