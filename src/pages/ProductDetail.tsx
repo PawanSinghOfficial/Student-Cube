@@ -97,6 +97,33 @@ const ProductDetail = () => {
     load();
   }, [id, addToRecentlyViewed]);
 
+  useEffect(() => {
+    if (!id || !user || !product || product.user_id === user.id) {
+      setCanReview(false);
+      return;
+    }
+    const check = async () => {
+      const [{ data: convo }, { data: existing }] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id")
+          .eq("buyer_id", user.id)
+          .eq("seller_id", product.user_id)
+          .eq("listing_id", id)
+          .maybeSingle(),
+        supabase
+          .from("reviews")
+          .select("id")
+          .eq("reviewer_id", user.id)
+          .eq("listing_id", id)
+          .maybeSingle(),
+      ]);
+      setCanReview(!!convo);
+      setAlreadyReviewed(!!existing);
+    };
+    check();
+  }, [id, user, product]);
+
   if (loading) {
     return (
       <Layout>
