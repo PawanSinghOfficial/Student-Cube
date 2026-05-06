@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { User, ShoppingBag, Tag, Star, CreditCard, Gift, Settings, LogOut, Loader2, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,12 @@ const ProfilePage = () => {
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
   const { wishlistIds, toggleWishlist } = useWishlist();
+
+  const grouped = useMemo(() => ({
+    active: myListings.filter((l) => l.status === "approved"),
+    pending: myListings.filter((l) => l.status === "pending"),
+    sold: myListings.filter((l) => l.status === "sold"),
+  }), [myListings]);
   const [wishlistItems, setWishlistItems] = useState<Array<{ id: string; title: string; price: number; image_urls: string[]; status: string }>>([]);
 
   useEffect(() => {
@@ -170,32 +177,47 @@ const ProfilePage = () => {
             )}
           </Card>
 
-          {!isGuest && myListings.length > 0 && (
+          {!isGuest && (
             <Card className="p-6 mt-6">
               <h2 className="font-bold text-lg mb-4">My Listings</h2>
-              <div className="space-y-3">
-                {myListings.map((l) => (
-                  <div key={l.id} className="flex items-center gap-4 p-3 border border-border rounded-lg">
-                    <Link to={`/product/${l.id}`} className="shrink-0">
-                      <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
-                        <Badge variant={l.status === "sold" ? "destructive" : l.status === "approved" ? "success" : "pending"} className="text-xs capitalize">
-                          {l.status}
-                        </Badge>
+              <Tabs defaultValue="active">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="active">Active ({grouped.active.length})</TabsTrigger>
+                  <TabsTrigger value="pending">Pending ({grouped.pending.length})</TabsTrigger>
+                  <TabsTrigger value="sold">Sold ({grouped.sold.length})</TabsTrigger>
+                </TabsList>
+                {(["active", "pending", "sold"] as const).map((key) => (
+                  <TabsContent key={key} value={key}>
+                    {grouped[key].length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No {key} listings.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {grouped[key].map((l) => (
+                          <div key={l.id} className="flex items-center gap-4 p-3 border border-border rounded-lg">
+                            <Link to={`/product/${l.id}`} className="shrink-0">
+                              <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
+                            </Link>
+                            <div className="flex-1 min-w-0">
+                              <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
+                                <Badge variant={l.status === "sold" ? "destructive" : l.status === "approved" ? "success" : "pending"} className="text-xs capitalize">
+                                  {l.status}
+                                </Badge>
+                              </div>
+                            </div>
+                            {l.status === "approved" && (
+                              <Button size="sm" variant="outline" onClick={() => handleMarkSold(l.id)}>
+                                Mark Sold
+                              </Button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                    {l.status === "approved" && (
-                      <Button size="sm" variant="outline" onClick={() => handleMarkSold(l.id)}>
-                        Mark Sold
-                      </Button>
                     )}
-                  </div>
+                  </TabsContent>
                 ))}
-              </div>
+              </Tabs>
             </Card>
           )}
 

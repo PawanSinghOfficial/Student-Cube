@@ -16,6 +16,7 @@ export interface Product {
   college: string;
   condition: "new" | "like-new" | "good" | "fair";
   seller: {
+    id?: string;
     name: string;
     isDealer: boolean;
     isVerified: boolean;
@@ -160,17 +161,27 @@ export function ProductCard({ product, onQuickView, showCompare = true }: Produc
           </div>
 
           {/* Seller info */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-xs font-medium text-primary">
-                {product.seller.name.charAt(0).toUpperCase()}
-              </span>
+          {product.seller.id ? (
+            <div
+              role="link"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/profile/${product.seller.id}`; }}
+              className="flex items-center gap-2 hover:text-primary cursor-pointer"
+            >
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                <span className="text-xs font-medium text-primary">{product.seller.name.charAt(0).toUpperCase()}</span>
+              </div>
+              <span className="text-sm text-muted-foreground hover:text-primary">{product.seller.name}</span>
+              {product.seller.isDealer && <Badge variant="dealer" className="text-[10px] px-1.5 py-0.5">Dealer</Badge>}
             </div>
-            <span className="text-sm text-muted-foreground">{product.seller.name}</span>
-            {product.seller.isDealer && (
-              <Badge variant="dealer" className="text-[10px] px-1.5 py-0.5">Dealer</Badge>
-            )}
-          </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                <span className="text-xs font-medium text-primary">{product.seller.name.charAt(0).toUpperCase()}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">{product.seller.name}</span>
+              {product.seller.isDealer && <Badge variant="dealer" className="text-[10px] px-1.5 py-0.5">Dealer</Badge>}
+            </div>
+          )}
 
           {/* Price */}
           <div className="flex items-end justify-between pt-2 border-t border-border">
