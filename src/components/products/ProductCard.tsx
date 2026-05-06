@@ -50,7 +50,9 @@ const conditionLabels = {
 
 export function ProductCard({ product, onQuickView, showCompare = true }: ProductCardProps) {
   const { addToCompare, removeFromCompare, isInCompare, compareProducts, maxProducts } = useCompare();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const inCompare = isInCompare(product.id);
+  const wishlisted = isWishlisted(product.id);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
