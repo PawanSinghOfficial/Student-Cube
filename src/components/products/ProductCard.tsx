@@ -96,13 +96,13 @@ export function ProductCard({ product, onQuickView, showCompare = true }: Produc
             <Button
               variant="ghost"
               size="icon"
-              className="bg-background/80 hover:bg-background h-8 w-8"
+              className={`h-8 w-8 ${wishlisted ? "bg-background text-destructive" : "bg-background/80 hover:bg-background"}`}
               onClick={(e) => {
                 e.preventDefault();
-                // Add to wishlist logic
+                toggleWishlist(product.id);
               }}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`} />
             </Button>
             {onQuickView && (
               <Button
