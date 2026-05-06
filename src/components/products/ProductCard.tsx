@@ -16,6 +16,7 @@ export interface Product {
   college: string;
   condition: "new" | "like-new" | "good" | "fair";
   seller: {
+    id?: string;
     name: string;
     isDealer: boolean;
     isVerified: boolean;
