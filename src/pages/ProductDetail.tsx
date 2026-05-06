@@ -249,21 +249,24 @@ const ProductDetail = () => {
             </div>
 
             <Card className="p-4">
-              <div className="flex items-center gap-4">
+              <Link
+                to={isOwnListing ? "/profile" : `/profile/${product.user_id}`}
+                className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+              >
                 <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
                   <span className="text-xl font-bold text-primary">{product.seller_name.charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">{product.seller_name}</span>
+                    <span className="font-semibold hover:text-primary">{product.seller_name}</span>
                     <BadgeCheck className="h-4 w-4 text-success" />
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Star className="h-3 w-3 fill-accent text-accent" />
-                    <span>Verified seller</span>
+                    <span>View seller profile</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             </Card>
 
             <Card className="p-4 bg-accent/10 border-accent/20">
