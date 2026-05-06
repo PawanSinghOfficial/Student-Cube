@@ -47,6 +47,7 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
+  const { isWishlisted: isInWishlist, toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
