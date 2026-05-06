@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Clock, Eye, Maximize2, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/contexts/CompareContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 export interface Product {
   id: string;
@@ -49,7 +50,9 @@ const conditionLabels = {
 
 export function ProductCard({ product, onQuickView, showCompare = true }: ProductCardProps) {
   const { addToCompare, removeFromCompare, isInCompare, compareProducts, maxProducts } = useCompare();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const inCompare = isInCompare(product.id);
+  const wishlisted = isWishlisted(product.id);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -93,13 +96,13 @@ export function ProductCard({ product, onQuickView, showCompare = true }: Produc
             <Button
               variant="ghost"
               size="icon"
-              className="bg-background/80 hover:bg-background h-8 w-8"
+              className={`h-8 w-8 ${wishlisted ? "bg-background text-destructive" : "bg-background/80 hover:bg-background"}`}
               onClick={(e) => {
                 e.preventDefault();
-                // Add to wishlist logic
+                toggleWishlist(product.id);
               }}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`} />
             </Button>
             {onQuickView && (
               <Button

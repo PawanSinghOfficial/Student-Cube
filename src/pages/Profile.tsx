@@ -3,11 +3,12 @@ import { Layout } from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, ShoppingBag, Tag, Star, CreditCard, Gift, Settings, LogOut, Loader2 } from "lucide-react";
+import { User, ShoppingBag, Tag, Star, CreditCard, Gift, Settings, LogOut, Loader2, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
@@ -17,6 +18,24 @@ const ProfilePage = () => {
   const [listingsCount, setListingsCount] = useState(0);
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
+  const { wishlistIds, toggleWishlist } = useWishlist();
+  const [wishlistItems, setWishlistItems] = useState<Array<{ id: string; title: string; price: number; image_urls: string[]; status: string }>>([]);
+
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      const ids = Array.from(wishlistIds);
+      if (ids.length === 0) {
+        setWishlistItems([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("listings")
+        .select("id, title, price, image_urls, status")
+        .in("id", ids);
+      setWishlistItems(data || []);
+    };
+    fetchWishlist();
+  }, [wishlistIds]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -177,6 +196,37 @@ const ProfilePage = () => {
                   </div>
                 ))}
               </div>
+            </Card>
+          )}
+
+          {!isGuest && (
+            <Card className="p-6 mt-6">
+              <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <Heart className="h-5 w-5 text-destructive fill-current" /> My Wishlist
+              </h2>
+              {wishlistItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No items in your wishlist yet. Tap the heart on any product to save it.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {wishlistItems.map((l) => (
+                    <div key={l.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                      <Link to={`/product/${l.id}`} className="shrink-0">
+                        <img src={l.image_urls?.[0] || "/placeholder.svg"} alt={l.title} className="w-16 h-16 object-cover rounded-lg" />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link to={`/product/${l.id}`} className="font-medium hover:text-primary line-clamp-1">{l.title}</Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-primary font-semibold">₹{l.price.toLocaleString()}</span>
+                          {l.status === "sold" && <Badge variant="destructive" className="text-xs">Sold</Badge>}
+                        </div>
+                      </div>
+                      <Button size="icon" variant="ghost" onClick={() => toggleWishlist(l.id)}>
+                        <Heart className="h-4 w-4 fill-current text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           )}
         </div>

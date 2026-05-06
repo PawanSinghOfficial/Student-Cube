@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { UpiPaymentDialog } from "@/components/payments/UpiPaymentDialog";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
@@ -46,8 +47,9 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
+  const { isWishlisted: isInWishlist, toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [product, setProduct] = useState<ListingFull | null>(null);
@@ -136,12 +138,9 @@ const ProductDetail = () => {
     navigator.clipboard.writeText(text);
     toast({ title: `${label} Copied!`, description: `${text} has been copied to clipboard.` });
   };
+  const wishlisted = product ? isInWishlist(product.id) : false;
   const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    toast({
-      title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
-      description: isWishlisted ? "Item removed from your wishlist" : "You'll be notified of price changes",
-    });
+    if (product) toggleWishlist(product.id);
   };
   const handleChatClick = () => {
     if (!user) {
@@ -202,10 +201,10 @@ const ProductDetail = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`absolute top-4 right-4 bg-background/80 hover:bg-background ${isWishlisted ? "text-destructive" : ""}`}
+                className={`absolute top-4 right-4 bg-background/80 hover:bg-background ${wishlisted ? "text-destructive" : ""}`}
                 onClick={handleWishlist}
               >
-                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current" : ""}`} />
+                <Heart className={`h-5 w-5 ${wishlisted ? "fill-current" : ""}`} />
               </Button>
             </div>
 
