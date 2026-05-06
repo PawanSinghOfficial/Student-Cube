@@ -20,6 +20,12 @@ const ProfilePage = () => {
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
   const { wishlistIds, toggleWishlist } = useWishlist();
+
+  const grouped = useMemo(() => ({
+    active: myListings.filter((l) => l.status === "approved"),
+    pending: myListings.filter((l) => l.status === "pending"),
+    sold: myListings.filter((l) => l.status === "sold"),
+  }), [myListings]);
   const [wishlistItems, setWishlistItems] = useState<Array<{ id: string; title: string; price: number; image_urls: string[]; status: string }>>([]);
 
   useEffect(() => {
