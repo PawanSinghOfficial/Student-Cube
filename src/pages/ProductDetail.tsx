@@ -49,7 +49,7 @@ const ProductDetail = () => {
   const { recentlyViewed, addToRecentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
   const { isWishlisted: isInWishlist, toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const wishlisted = product ? isInWishlist(product.id) : false;
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [product, setProduct] = useState<ListingFull | null>(null);
