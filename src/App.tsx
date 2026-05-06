@@ -14,6 +14,7 @@ import Sell from "./pages/Sell";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
