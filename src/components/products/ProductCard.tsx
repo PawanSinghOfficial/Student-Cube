@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Clock, Eye, Maximize2, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/contexts/CompareContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 export interface Product {
   id: string;
