@@ -341,6 +341,18 @@ const ProductDetail = () => {
                   Mark as Sold
                 </Button>
               )}
+              {canReview && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full gap-2"
+                  onClick={() => setShowReviewDialog(true)}
+                  disabled={alreadyReviewed}
+                >
+                  <Star className="h-4 w-4" />
+                  {alreadyReviewed ? "You've reviewed this seller" : "Leave a Review"}
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">
