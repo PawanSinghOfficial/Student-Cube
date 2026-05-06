@@ -396,6 +396,16 @@ const ProductDetail = () => {
         purpose="Contact Access Fee - IPU KA ADDA"
         onPaymentComplete={handlePaymentComplete}
       />
+
+      {product && (
+        <ReviewDialog
+          open={showReviewDialog}
+          onOpenChange={setShowReviewDialog}
+          sellerId={product.user_id}
+          listingId={product.id}
+          onSubmitted={() => setAlreadyReviewed(true)}
+        />
+      )}
     </Layout>
   );
 };
