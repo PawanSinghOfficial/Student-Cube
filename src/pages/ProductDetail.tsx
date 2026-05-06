@@ -10,6 +10,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { UpiPaymentDialog } from "@/components/payments/UpiPaymentDialog";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
