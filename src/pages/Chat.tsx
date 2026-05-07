@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck } from "lucide-react";
+import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon } from "lucide-react";
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChat, Conversation } from "@/hooks/useChat";
+import { useChat, Conversation, IMAGE_MSG_PREFIX } from "@/hooks/useChat";
 import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,17 +24,22 @@ const ChatPage = () => {
     messages,
     loading: convoLoading,
     messagesLoading,
+    otherTyping,
     selectConversation,
     sendMessage,
+    sendImageMessage,
     setActiveConversation,
     getOrCreateConversation,
     fetchConversations,
+    broadcastTyping,
   } = useChat();
 
   const [messageInput, setMessageInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-open conversation from ?listing=<id> URL param
   useEffect(() => {
@@ -78,7 +83,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, otherTyping]);
 
   const handleSend = async (content?: string) => {
     const text = content || messageInput;
@@ -87,6 +92,24 @@ const ChatPage = () => {
     const ok = await sendMessage(text.trim());
     if (ok) setMessageInput("");
     setSending(false);
+  };
+
+  const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please pick an image.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Max 5MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingImage(true);
+    const ok = await sendImageMessage(file);
+    setUploadingImage(false);
+    if (!ok) toast({ title: "Upload failed", variant: "destructive" });
   };
 
   if (isLoading) {
@@ -214,19 +237,29 @@ const ChatPage = () => {
                   <div className="space-y-3">
                     {messages.map((msg) => {
                       const isOwn = msg.sender_id === user.id;
+                      const isImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
+                      const imageUrl = isImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
                       return (
                         <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
                           <div
                             className={cn(
-                              "max-w-[75%] px-4 py-2 rounded-2xl text-sm",
+                              "max-w-[75%] rounded-2xl text-sm overflow-hidden",
+                              isImage ? "p-1" : "px-4 py-2",
                               isOwn
                                 ? "bg-primary text-primary-foreground rounded-br-md"
                                 : "bg-card border border-border rounded-bl-md"
                             )}
                           >
-                            <p>{msg.content}</p>
+                            {isImage ? (
+                              <a href={imageUrl} target="_blank" rel="noreferrer">
+                                <img src={imageUrl} alt="Shared" className="rounded-xl max-h-64 object-cover" />
+                              </a>
+                            ) : (
+                              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            )}
                             <div className={cn(
                               "flex items-center gap-1 mt-1",
+                              isImage ? "px-2 pb-1" : "",
                               isOwn ? "justify-end" : "justify-start"
                             )}>
                               <p className={cn(
@@ -247,6 +280,17 @@ const ChatPage = () => {
                         </div>
                       );
                     })}
+                    {otherTyping && (
+                      <div className="flex justify-start">
+                        <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                          <div className="flex gap-1 items-center">
+                            <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                            <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                            <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
@@ -266,10 +310,29 @@ const ChatPage = () => {
                     </Badge>
                   ))}
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImagePick}
+                />
                 <div className="flex gap-2">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    disabled={uploadingImage}
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Send image"
+                  >
+                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                  </Button>
                   <Input
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={(e) => {
+                      setMessageInput(e.target.value);
+                      broadcastTyping();
+                    }}
                     placeholder="Type a message..."
                     className="bg-secondary/50"
                     onKeyDown={(e) => {
