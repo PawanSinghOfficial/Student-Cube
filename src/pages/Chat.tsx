@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck } from "lucide-react";
+import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon } from "lucide-react";
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChat, Conversation } from "@/hooks/useChat";
+import { useChat, Conversation, IMAGE_MSG_PREFIX } from "@/hooks/useChat";
 import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,17 +24,22 @@ const ChatPage = () => {
     messages,
     loading: convoLoading,
     messagesLoading,
+    otherTyping,
     selectConversation,
     sendMessage,
+    sendImageMessage,
     setActiveConversation,
     getOrCreateConversation,
     fetchConversations,
+    broadcastTyping,
   } = useChat();
 
   const [messageInput, setMessageInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-open conversation from ?listing=<id> URL param
   useEffect(() => {
@@ -78,7 +83,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, otherTyping]);
 
   const handleSend = async (content?: string) => {
     const text = content || messageInput;
@@ -87,6 +92,24 @@ const ChatPage = () => {
     const ok = await sendMessage(text.trim());
     if (ok) setMessageInput("");
     setSending(false);
+  };
+
+  const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please pick an image.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Max 5MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingImage(true);
+    const ok = await sendImageMessage(file);
+    setUploadingImage(false);
+    if (!ok) toast({ title: "Upload failed", variant: "destructive" });
   };
 
   if (isLoading) {
