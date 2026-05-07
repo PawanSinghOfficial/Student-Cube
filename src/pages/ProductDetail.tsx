@@ -31,7 +31,8 @@ interface ListingFull {
   image_urls: string[];
   status: string;
   created_at: string;
-  seller_name: string;
+  seller_username: string;
+  seller_full_name: string;
 }
 
 const timeAgo = (iso: string) => {
