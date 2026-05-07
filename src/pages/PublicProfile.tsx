@@ -64,7 +64,7 @@ const PublicProfilePage = () => {
         const namePromises = reviewerIds.map((rid) =>
           supabase.rpc("get_public_profile", { _user_id: rid }).then(({ data }) => {
             const prof = data?.[0];
-            nameMap[rid] = prof?.first_name || prof?.username || "User";
+            nameMap[rid] = prof?.username || "User";
           })
         );
         await Promise.all(namePromises);
@@ -99,7 +99,7 @@ const PublicProfilePage = () => {
     );
   }
 
-  const displayName = profile.first_name || profile.username || "Seller";
+  const displayName = profile.username || "Seller";
   const initial = displayName.charAt(0).toUpperCase();
   const joinDate = new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;

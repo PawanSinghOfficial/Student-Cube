@@ -88,7 +88,7 @@ const BrowsePage = () => {
           condition: l.condition as Product["condition"],
           seller: {
             id: l.user_id,
-            name: p?.first_name || p?.username || "Seller",
+            name: p?.username || "Seller",
             isDealer: false,
             isVerified: true,
           },
