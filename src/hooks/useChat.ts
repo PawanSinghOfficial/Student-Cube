@@ -63,7 +63,7 @@ export function useChat() {
           ...c,
           listing_title: listingRes.data?.title || "Unknown Listing",
           listing_image: listingRes.data?.image_urls?.[0] || "",
-          other_user_name: profileRes.data?.first_name || profileRes.data?.username || "User",
+          other_user_name: profileRes.data?.username || "User",
           last_message: lastMsgRes.data?.content || "",
         };
       })

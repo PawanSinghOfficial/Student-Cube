@@ -31,7 +31,8 @@ interface ListingFull {
   image_urls: string[];
   status: string;
   created_at: string;
-  seller_name: string;
+  seller_username: string;
+  seller_full_name: string;
 }
 
 const timeAgo = (iso: string) => {
@@ -75,8 +76,9 @@ const ProductDetail = () => {
         .eq("user_id", l.user_id)
         .maybeSingle();
       const full: ListingFull = {
-        ...l,
-        seller_name: p?.first_name || p?.username || "Seller",
+        ...(l as any),
+        seller_username: p?.username || "seller",
+        seller_full_name: p?.first_name || p?.username || "Seller",
       } as ListingFull;
       setProduct(full);
       setLoading(false);
@@ -89,7 +91,7 @@ const ProductDetail = () => {
         category: l.category,
         college: l.college,
         condition: l.condition as any,
-        seller: { name: p?.first_name || "Seller", isDealer: false, isVerified: true },
+        seller: { name: p?.username || "Seller", isDealer: false, isVerified: true },
         createdAt: timeAgo(l.created_at),
         views: 0,
       });
@@ -285,11 +287,11 @@ const ProductDetail = () => {
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >
                 <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="text-xl font-bold text-primary">{product.seller_name.charAt(0).toUpperCase()}</span>
+                  <span className="text-xl font-bold text-primary">{(contactUnlocked || isOwnListing ? product.seller_full_name : product.seller_username).charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold hover:text-primary">{product.seller_name}</span>
+                    <span className="font-semibold hover:text-primary">{contactUnlocked || isOwnListing ? product.seller_full_name : `@${product.seller_username}`}</span>
                     <BadgeCheck className="h-4 w-4 text-success" />
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
