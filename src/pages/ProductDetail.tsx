@@ -76,8 +76,9 @@ const ProductDetail = () => {
         .eq("user_id", l.user_id)
         .maybeSingle();
       const full: ListingFull = {
-        ...l,
-        seller_name: p?.first_name || p?.username || "Seller",
+        ...(l as any),
+        seller_username: p?.username || "seller",
+        seller_full_name: p?.first_name || p?.username || "Seller",
       } as ListingFull;
       setProduct(full);
       setLoading(false);
@@ -90,7 +91,7 @@ const ProductDetail = () => {
         category: l.category,
         college: l.college,
         condition: l.condition as any,
-        seller: { name: p?.first_name || "Seller", isDealer: false, isVerified: true },
+        seller: { name: p?.username || "Seller", isDealer: false, isVerified: true },
         createdAt: timeAgo(l.created_at),
         views: 0,
       });
