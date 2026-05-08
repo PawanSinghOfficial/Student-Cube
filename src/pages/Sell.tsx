@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES, GGSIPU_COLLEGES } from "@/data/mockData";
-import { Upload, Camera, IndianRupee, Info, CheckCircle, X, Loader2 } from "lucide-react";
+import { Upload, Camera, IndianRupee, Info, CheckCircle, X, Loader2, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
+const DRAFT_KEY = "sell_draft_v1";
+const EMPTY_FORM = { title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" };
 
 const SellPage = () => {
   const { toast } = useToast();
