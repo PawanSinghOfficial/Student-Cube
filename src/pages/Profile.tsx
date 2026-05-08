@@ -10,12 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
+
+interface ProfileData extends ProfileEditable { email: string; }
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<{ first_name: string; username: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [listingsCount, setListingsCount] = useState(0);
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
