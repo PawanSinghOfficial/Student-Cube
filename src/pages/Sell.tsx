@@ -167,6 +167,17 @@ const SellPage = () => {
           <p className="text-muted-foreground mt-2">Fill in the details to sell your college accessories</p>
         </div>
 
+        <div className="flex items-center justify-between mb-3 h-6">
+          <span className={`text-xs flex items-center gap-1 text-muted-foreground transition-opacity ${draftSaved ? "opacity-100" : "opacity-0"}`}>
+            <Save className="h-3 w-3" /> Draft saved
+          </span>
+          {Object.values(formData).some((v) => v && String(v).trim() !== "") && (
+            <Button type="button" variant="ghost" size="sm" onClick={clearDraft} className="text-xs h-7 gap-1 text-destructive hover:text-destructive">
+              <Trash2 className="h-3 w-3" /> Clear draft
+            </Button>
+          )}
+        </div>
+
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Images */}
