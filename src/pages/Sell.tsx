@@ -28,15 +28,41 @@ const SellPage = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    college: "",
-    price: "",
-    originalPrice: "",
-    condition: "",
-    description: "",
+  const [formData, setFormData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) return { ...EMPTY_FORM, ...JSON.parse(raw) };
+    } catch {}
+    return EMPTY_FORM;
   });
+  const [draftSaved, setDraftSaved] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Auto-save draft to localStorage (debounced)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const hasContent = Object.values(formData).some((v) => v && String(v).trim() !== "");
+    const t = setTimeout(() => {
+      if (hasContent) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+        setDraftSaved(true);
+        const hide = setTimeout(() => setDraftSaved(false), 1500);
+        return () => clearTimeout(hide);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [formData]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setFormData(EMPTY_FORM);
+    toast({ title: "Draft cleared" });
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
