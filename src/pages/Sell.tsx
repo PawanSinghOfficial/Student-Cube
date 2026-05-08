@@ -145,7 +145,9 @@ const SellPage = () => {
       });
 
       // Reset form
-      setFormData({ title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" });
+      // Reset form & clear draft
+      localStorage.removeItem(DRAFT_KEY);
+      setFormData(EMPTY_FORM);
       setImages([]);
       setImagePreviews([]);
       setVideoFile(null);
