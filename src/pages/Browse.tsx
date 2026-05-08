@@ -339,11 +339,22 @@ const BrowsePage = () => {
                 <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary" />
               </Card>
             ) : filteredProducts.length > 0 ? (
-              <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onQuickView={setQuickViewProduct} />
-                ))}
-              </div>
+              <>
+                <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} onQuickView={setQuickViewProduct} />
+                  ))}
+                </div>
+                <div ref={sentinelRef} className="py-8 flex justify-center text-sm text-muted-foreground">
+                  {loadingMore ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : hasMore ? (
+                    <span className="opacity-60">Scroll for more</span>
+                  ) : (
+                    <span>No more listings</span>
+                  )}
+                </div>
+              </>
             ) : (
               <Card className="p-12 text-center">
                 <div className="text-muted-foreground mb-4">
