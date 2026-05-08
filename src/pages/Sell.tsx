@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES, GGSIPU_COLLEGES } from "@/data/mockData";
-import { Upload, Camera, IndianRupee, Info, CheckCircle, X, Loader2 } from "lucide-react";
+import { Upload, Camera, IndianRupee, Info, CheckCircle, X, Loader2, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
+const DRAFT_KEY = "sell_draft_v1";
+const EMPTY_FORM = { title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" };
 
 const SellPage = () => {
   const { toast } = useToast();
@@ -25,15 +28,41 @@ const SellPage = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    college: "",
-    price: "",
-    originalPrice: "",
-    condition: "",
-    description: "",
+  const [formData, setFormData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) return { ...EMPTY_FORM, ...JSON.parse(raw) };
+    } catch {}
+    return EMPTY_FORM;
   });
+  const [draftSaved, setDraftSaved] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Auto-save draft to localStorage (debounced)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const hasContent = Object.values(formData).some((v) => v && String(v).trim() !== "");
+    const t = setTimeout(() => {
+      if (hasContent) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+        setDraftSaved(true);
+        const hide = setTimeout(() => setDraftSaved(false), 1500);
+        return () => clearTimeout(hide);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [formData]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setFormData(EMPTY_FORM);
+    toast({ title: "Draft cleared" });
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -116,7 +145,9 @@ const SellPage = () => {
       });
 
       // Reset form
-      setFormData({ title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" });
+      // Reset form & clear draft
+      localStorage.removeItem(DRAFT_KEY);
+      setFormData(EMPTY_FORM);
       setImages([]);
       setImagePreviews([]);
       setVideoFile(null);
@@ -134,6 +165,17 @@ const SellPage = () => {
           <Badge variant="accent" className="mb-4">Become a Seller</Badge>
           <h1 className="text-3xl font-bold text-foreground">List Your Item</h1>
           <p className="text-muted-foreground mt-2">Fill in the details to sell your college accessories</p>
+        </div>
+
+        <div className="flex items-center justify-between mb-3 h-6">
+          <span className={`text-xs flex items-center gap-1 text-muted-foreground transition-opacity ${draftSaved ? "opacity-100" : "opacity-0"}`}>
+            <Save className="h-3 w-3" /> Draft saved
+          </span>
+          {Object.values(formData).some((v) => v && String(v).trim() !== "") && (
+            <Button type="button" variant="ghost" size="sm" onClick={clearDraft} className="text-xs h-7 gap-1 text-destructive hover:text-destructive">
+              <Trash2 className="h-3 w-3" /> Clear draft
+            </Button>
+          )}
         </div>
 
         <Card className="p-6">
