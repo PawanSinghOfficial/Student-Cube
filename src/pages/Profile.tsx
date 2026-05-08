@@ -58,14 +58,14 @@ const ProfilePage = () => {
 
     const fetchProfile = async () => {
       const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
-        supabase.from("profiles").select("first_name, username, email").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("first_name, username, email, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
         supabase
           .from("listings")
           .select("id, title, price, status, image_urls", { count: "exact" })
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
       ]);
-      if (profileData) setProfile(profileData);
+      if (profileData) setProfile(profileData as ProfileData);
       setListingsCount(count || 0);
       setMyListings(listingsData || []);
       setProfileLoading(false);
