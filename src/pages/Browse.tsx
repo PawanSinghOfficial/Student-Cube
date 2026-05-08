@@ -195,7 +195,7 @@ const BrowsePage = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Browse Products</h1>
           <p className="text-muted-foreground">
-            {loading ? "Loading…" : `${filteredProducts.length} products available from GGSIPU students`}
+            {loading ? "Loading…" : `Showing ${filteredProducts.length}${hasMore ? "+" : ""} products from GGSIPU students`}
           </p>
         </div>
 
