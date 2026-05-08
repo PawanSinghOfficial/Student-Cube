@@ -65,7 +65,7 @@ const ProfilePage = () => {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
       ]);
-      if (profileData) setProfile(profileData as ProfileData);
+      if (profileData) setProfile(profileData as unknown as ProfileData);
       setListingsCount(count || 0);
       setMyListings(listingsData || []);
       setProfileLoading(false);
