@@ -10,12 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
+
+interface ProfileData extends ProfileEditable { email: string; }
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<{ first_name: string; username: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [listingsCount, setListingsCount] = useState(0);
   const [myListings, setMyListings] = useState<Array<{ id: string; title: string; price: number; status: string; image_urls: string[] }>>([]);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -53,14 +58,14 @@ const ProfilePage = () => {
 
     const fetchProfile = async () => {
       const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
-        supabase.from("profiles").select("first_name, username, email").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("first_name, username, email, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
         supabase
           .from("listings")
           .select("id, title, price, status, image_urls", { count: "exact" })
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
       ]);
-      if (profileData) setProfile(profileData);
+      if (profileData) setProfile(profileData as unknown as ProfileData);
       setListingsCount(count || 0);
       setMyListings(listingsData || []);
       setProfileLoading(false);
@@ -107,9 +112,10 @@ const ProfilePage = () => {
           {/* Profile Header */}
           <Card className="p-6 mb-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center">
-                <span className="text-4xl font-bold text-primary-foreground">{initial}</span>
-              </div>
+              <Avatar className="h-24 w-24">
+                {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} /> : null}
+                <AvatarFallback className="text-4xl gradient-primary text-primary-foreground">{initial}</AvatarFallback>
+              </Avatar>
               <div className="text-center md:text-left flex-1">
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                   <h1 className="text-2xl font-bold">{displayName}</h1>
@@ -123,6 +129,12 @@ const ProfilePage = () => {
                 {!isGuest && (
                   <p className="text-sm text-muted-foreground mt-1">{profile?.email || user?.email}</p>
                 )}
+                {profile?.college && (
+                  <p className="text-sm text-muted-foreground mt-1">🎓 {profile.college}</p>
+                )}
+                {profile?.bio && (
+                  <p className="text-sm mt-2 max-w-md">{profile.bio}</p>
+                )}
                 <div className="flex items-center justify-center md:justify-start gap-4 mt-3">
                   <div className="flex items-center gap-1"><Star className="h-4 w-4 text-accent" /><span className="font-medium">0.0</span></div>
                   <span className="text-muted-foreground">•</span>
@@ -132,10 +144,26 @@ const ProfilePage = () => {
               {isGuest ? (
                 <Button variant="accent" onClick={() => navigate("/auth")}>Sign In</Button>
               ) : (
-                <Button variant="outline">Edit Profile</Button>
+                <Button variant="outline" onClick={() => setEditOpen(true)}>Edit Profile</Button>
               )}
             </div>
           </Card>
+
+          {!isGuest && profile && (
+            <EditProfileDialog
+              open={editOpen}
+              onOpenChange={setEditOpen}
+              userId={user!.id}
+              initial={{
+                first_name: profile.first_name || "",
+                username: profile.username || "",
+                college: profile.college || "",
+                bio: profile.bio || "",
+                avatar_url: profile.avatar_url || "",
+              }}
+              onSaved={(p) => setProfile((prev) => (prev ? { ...prev, ...p } : prev))}
+            />
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
