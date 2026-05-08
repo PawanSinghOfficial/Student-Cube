@@ -42,9 +42,14 @@ const timeAgo = (iso: string) => {
   return `${Math.floor(d / 86400)}d ago`;
 };
 
+const PAGE_SIZE = 12;
+
 const BrowsePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
@@ -54,28 +59,61 @@ const BrowsePage = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const fetchSeqRef = useRef(0);
+
+  // Debounce search query for server-side filtering
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const { data: listings } = await supabase
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const fetchPage = useCallback(
+    async (pageIndex: number, replace: boolean) => {
+      const seq = ++fetchSeqRef.current;
+      if (replace) setLoading(true);
+      else setLoadingMore(true);
+
+      let q = supabase
         .from("listings")
         .select("*")
         .in("status", ["approved", "sold"])
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE - 1);
 
-      if (!listings) {
-        setProducts([]);
-        setLoading(false);
-        return;
+      if (debouncedSearch.trim()) q = q.ilike("title", `%${debouncedSearch.trim()}%`);
+      if (selectedCategory) {
+        const catName = CATEGORIES.find((c) => c.id === selectedCategory)?.name;
+        if (catName) q = q.eq("category", catName);
+      }
+      if (selectedConditions.length > 0) q = q.in("condition", selectedConditions);
+      if (selectedPriceRange) {
+        const range = priceRanges.find((r) => r.id === selectedPriceRange);
+        if (range) {
+          q = q.gte("price", range.min);
+          if (range.max !== Infinity) q = q.lte("price", range.max);
+        }
+      }
+      if (selectedCollege) {
+        const collegeKey = selectedCollege.split(" - ")[0];
+        q = q.ilike("college", `%${collegeKey}%`);
       }
 
-      const userIds = Array.from(new Set(listings.map((l) => l.user_id)));
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, first_name, username")
-        .in("user_id", userIds);
+      const { data: listings } = await q;
 
-      const mapped: Product[] = listings.map((l) => {
+      // Stale response guard
+      if (seq !== fetchSeqRef.current) return;
+
+      const rows = listings || [];
+      const userIds = Array.from(new Set(rows.map((l) => l.user_id)));
+      const { data: profiles } = userIds.length
+        ? await supabase.from("profiles").select("user_id, first_name, username").in("user_id", userIds)
+        : { data: [] as Array<{ user_id: string; username: string; first_name: string }> };
+
+      if (seq !== fetchSeqRef.current) return;
+
+      const mapped: Product[] = rows.map((l) => {
         const p = profiles?.find((pr) => pr.user_id === l.user_id);
         return {
           id: l.id,
@@ -98,11 +136,35 @@ const BrowsePage = () => {
         };
       });
 
-      setProducts(mapped);
+      setProducts((prev) => (replace ? mapped : [...prev, ...mapped]));
+      setHasMore(rows.length === PAGE_SIZE);
+      setPage(pageIndex);
       setLoading(false);
-    };
-    load();
-  }, []);
+      setLoadingMore(false);
+    },
+    [debouncedSearch, selectedCategory, selectedConditions, selectedPriceRange, selectedCollege]
+  );
+
+  // Reset and refetch from page 0 whenever filters change
+  useEffect(() => {
+    fetchPage(0, true);
+  }, [fetchPage]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const el = sentinelRef.current;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && !loadingMore && hasMore) {
+          fetchPage(page + 1, false);
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [page, hasMore, loading, loadingMore, fetchPage]);
 
   const toggleCondition = (condition: string) => {
     setSelectedConditions((prev) =>
@@ -125,17 +187,7 @@ const BrowsePage = () => {
     selectedPriceRange,
   ].filter(Boolean).length;
 
-  const filteredProducts = products.filter((product) => {
-    if (searchQuery && !product.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (selectedCategory && product.category !== CATEGORIES.find((c) => c.id === selectedCategory)?.name) return false;
-    if (selectedConditions.length > 0 && !selectedConditions.includes(product.condition)) return false;
-    if (selectedPriceRange) {
-      const range = priceRanges.find((r) => r.id === selectedPriceRange);
-      if (range && (product.price < range.min || product.price > range.max)) return false;
-    }
-    if (selectedCollege && !product.college.toLowerCase().includes(selectedCollege.toLowerCase().split(" - ")[0])) return false;
-    return true;
-  });
+  const filteredProducts = products;
 
   return (
     <Layout>
