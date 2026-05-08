@@ -106,7 +106,13 @@ export function EditProfileDialog({ open, onOpenChange, userId, initial, onSaved
       return;
     }
     toast({ title: "Profile updated" });
-    onSaved({ ...parsed.data, bio: parsed.data.bio || "", avatar_url: form.avatar_url });
+    onSaved({
+      first_name: parsed.data.first_name,
+      username: parsed.data.username,
+      college: parsed.data.college,
+      bio: parsed.data.bio || "",
+      avatar_url: form.avatar_url,
+    });
     onOpenChange(false);
   };
 
