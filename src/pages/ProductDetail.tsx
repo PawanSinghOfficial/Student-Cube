@@ -56,6 +56,7 @@ const ProductDetail = () => {
   
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
