@@ -437,6 +437,14 @@ const ProductDetail = () => {
           onSubmitted={() => setAlreadyReviewed(true)}
         />
       )}
+
+      {product && (
+        <ReportListingDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          listingId={product.id}
+        />
+      )}
     </Layout>
   );
 };
