@@ -14,9 +14,10 @@ import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
-  CheckCircle, Copy, Loader2,
+  CheckCircle, Copy, Loader2, Flag,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ReportListingDialog } from "@/components/reports/ReportListingDialog";
 
 interface ListingFull {
   id: string;
@@ -55,6 +56,7 @@ const ProductDetail = () => {
   
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
@@ -372,6 +374,16 @@ const ProductDetail = () => {
                   {alreadyReviewed ? "You've reviewed this seller" : "Leave a Review"}
                 </Button>
               )}
+              {user && !isOwnListing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground hover:text-destructive gap-2"
+                  onClick={() => setShowReportDialog(true)}
+                >
+                  <Flag className="h-4 w-4" /> Report this listing
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">
@@ -423,6 +435,14 @@ const ProductDetail = () => {
           sellerId={product.user_id}
           listingId={product.id}
           onSubmitted={() => setAlreadyReviewed(true)}
+        />
+      )}
+
+      {product && (
+        <ReportListingDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          listingId={product.id}
         />
       )}
     </Layout>
