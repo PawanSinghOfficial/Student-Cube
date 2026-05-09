@@ -14,9 +14,10 @@ import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
-  CheckCircle, Copy, Loader2,
+  CheckCircle, Copy, Loader2, Flag,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ReportListingDialog } from "@/components/reports/ReportListingDialog";
 
 interface ListingFull {
   id: string;
