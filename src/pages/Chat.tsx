@@ -237,8 +237,12 @@ const ChatPage = () => {
                   <div className="space-y-3">
                     {messages.map((msg) => {
                       const isOwn = msg.sender_id === user.id;
-                      const isImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
-                      const imageUrl = isImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
+                      const rawIsImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
+                      const rawUrl = rawIsImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
+                      // Only allow https URLs from Supabase storage to prevent javascript: XSS
+                      const isSafeImageUrl = rawIsImage && /^https:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-images\//i.test(rawUrl);
+                      const isImage = isSafeImageUrl;
+                      const imageUrl = isSafeImageUrl ? rawUrl : "";
                       return (
                         <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
                           <div
