@@ -1,0 +1,1 @@
+REVOKE SELECT (admin_notes) ON public.listings FROM anon, authenticated;
