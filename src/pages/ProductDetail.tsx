@@ -64,7 +64,7 @@ const ProductDetail = () => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const { data: l } = await supabase.from("listings").select("*").eq("id", id).maybeSingle();
+      const { data: l } = await supabase.from("listings").select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, created_at, updated_at").eq("id", id).maybeSingle();
       if (!l) {
         setProduct(null);
         setLoading(false);
