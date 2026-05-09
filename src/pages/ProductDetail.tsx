@@ -29,6 +29,7 @@ interface ListingFull {
   original_price: number | null;
   condition: string;
   image_urls: string[];
+  video_url: string | null;
   status: string;
   created_at: string;
   seller_username: string;
@@ -254,6 +255,22 @@ const ProductDetail = () => {
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {product.video_url && (
+              <div className="rounded-2xl overflow-hidden border border-border bg-secondary">
+                <video
+                  src={product.video_url}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  controlsList="nodownload"
+                  className="w-full h-auto block bg-black"
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div className="px-4 py-2 text-xs text-muted-foreground">Seller's video proof</div>
               </div>
             )}
           </div>
