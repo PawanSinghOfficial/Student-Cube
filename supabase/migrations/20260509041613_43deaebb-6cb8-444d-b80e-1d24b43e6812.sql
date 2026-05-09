@@ -1,0 +1,1 @@
+CREATE POLICY "No updates to user_rewards" ON public.user_rewards FOR UPDATE TO authenticated USING (false) WITH CHECK (false);
