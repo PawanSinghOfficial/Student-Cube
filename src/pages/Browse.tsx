@@ -77,7 +77,7 @@ const BrowsePage = () => {
 
       let q = supabase
         .from("listings")
-        .select("*")
+        .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, created_at, updated_at")
         .in("status", ["approved", "sold"])
         .order("created_at", { ascending: false })
         .range(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE - 1);
