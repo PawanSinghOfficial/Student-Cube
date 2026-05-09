@@ -55,7 +55,7 @@ export function useChat() {
         const otherUserId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
         const [listingRes, profileRes, lastMsgRes] = await Promise.all([
           supabase.from("listings").select("title, image_urls").eq("id", c.listing_id).maybeSingle(),
-          supabase.from("profiles").select("first_name, username").eq("user_id", otherUserId).maybeSingle(),
+          supabase.rpc("get_public_profile", { _user_id: otherUserId }).maybeSingle(),
           supabase.from("messages").select("content").eq("conversation_id", c.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         ]);
         const lastRaw = lastMsgRes.data?.content || "";
