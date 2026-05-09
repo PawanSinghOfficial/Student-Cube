@@ -257,6 +257,22 @@ const ProductDetail = () => {
                 ))}
               </div>
             )}
+
+            {product.video_url && (
+              <div className="rounded-2xl overflow-hidden border border-border bg-secondary">
+                <video
+                  src={product.video_url}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  controlsList="nodownload"
+                  className="w-full h-auto block bg-black"
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div className="px-4 py-2 text-xs text-muted-foreground">Seller's video proof</div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
