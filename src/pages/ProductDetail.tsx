@@ -374,6 +374,16 @@ const ProductDetail = () => {
                   {alreadyReviewed ? "You've reviewed this seller" : "Leave a Review"}
                 </Button>
               )}
+              {user && !isOwnListing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground hover:text-destructive gap-2"
+                  onClick={() => setShowReportDialog(true)}
+                >
+                  <Flag className="h-4 w-4" /> Report this listing
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6 pt-4 border-t">
