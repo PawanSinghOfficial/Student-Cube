@@ -29,6 +29,7 @@ interface ListingFull {
   original_price: number | null;
   condition: string;
   image_urls: string[];
+  video_url: string | null;
   status: string;
   created_at: string;
   seller_username: string;
