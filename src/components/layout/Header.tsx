@@ -97,6 +97,7 @@ export function Header() {
 
           {/* Reward Timer + Auth - Desktop */}
           <div className="hidden md:flex items-center gap-2">
+            {user && <NotificationBell />}
             {rewardTimer.isActive && (
               <Badge variant="secondary" className="gap-1 text-xs font-mono bg-success/10 text-success border-success/30">
                 <Clock className="h-3 w-3" />
