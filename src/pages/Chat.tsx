@@ -38,8 +38,49 @@ const ChatPage = () => {
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
+  const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
+
+  const handleOfferResponse = async (msg: any, accept: boolean) => {
+    if (!activeConversation || !user) return;
+    setRespondingOfferId(msg.id);
+    try {
+      const { error: updErr } = await supabase
+        .from("messages")
+        .update({ offer_status: accept ? "accepted" : "declined" })
+        .eq("id", msg.id)
+        .eq("offer_status", "pending");
+      if (updErr) throw updErr;
+
+      if (accept) {
+        const { error: lErr } = await supabase
+          .from("listings")
+          .update({ status: "sold" })
+          .eq("id", activeConversation.listing_id)
+          .eq("user_id", user.id);
+        if (lErr) throw lErr;
+      }
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: accept
+          ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+          : `❌ Offer of ₹${Number(msg.offer_price).toLocaleString()} declined.`,
+        message_type: "system",
+      } as any);
+
+      toast({ title: accept ? "Offer accepted" : "Offer declined" });
+    } catch (e: any) {
+      toast({ title: "Action failed", description: e?.message, variant: "destructive" });
+    } finally {
+      setRespondingOfferId(null);
+    }
+  };
+
 
   // Auto-open conversation from ?listing=<id> URL param
   useEffect(() => {
