@@ -15,6 +15,7 @@ export interface Product {
   category: string;
   college: string;
   condition: "new" | "like-new" | "good" | "fair";
+  tags?: string[];
   seller: {
     id?: string;
     name: string;
@@ -33,7 +34,9 @@ interface ProductCardProps {
   product: Product;
   onQuickView?: (product: Product) => void;
   showCompare?: boolean;
+  matchedTags?: string[];
 }
+
 
 const conditionColors = {
   new: "success",
