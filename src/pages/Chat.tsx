@@ -276,11 +276,87 @@ const ChatPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {messages.map((msg) => {
+                    {messages.map((msg: any) => {
                       const isOwn = msg.sender_id === user.id;
+
+                      // System messages — centered pill
+                      if (msg.message_type === "system") {
+                        return (
+                          <div key={msg.id} className="flex justify-center">
+                            <div className="text-xs px-3 py-1.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                              {msg.content}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // Offer messages — distinct card
+                      if (msg.message_type === "offer") {
+                        const status = msg.offer_status as string;
+                        const statusColor =
+                          status === "accepted" ? "success" :
+                          status === "declined" ? "destructive" :
+                          "secondary";
+                        return (
+                          <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                            <Card className={cn(
+                              "max-w-[85%] p-4 border-2",
+                              status === "pending" ? "border-accent/50 bg-accent/5" :
+                              status === "accepted" ? "border-success/50 bg-success/5" :
+                              "border-destructive/30 bg-destructive/5"
+                            )}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Tag className="h-4 w-4 text-accent" />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isOwn ? "Your Offer" : "Offer Received"}
+                                </span>
+                                <Badge variant={statusColor as any} className="ml-auto text-[10px] capitalize">
+                                  {status}
+                                </Badge>
+                              </div>
+                              <p className="text-2xl font-bold text-primary mb-1">
+                                ₹{Number(msg.offer_price ?? 0).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3 truncate">
+                                For: {activeConversation?.listing_title}
+                              </p>
+                              {status === "pending" && isSellerInActive && (
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="success"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleOfferResponse(msg, true)}
+                                  >
+                                    {respondingOfferId === msg.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleOfferResponse(msg, false)}
+                                  >
+                                    <XCircle className="h-3 w-3" />
+                                    Decline
+                                  </Button>
+                                </div>
+                              )}
+                              {status === "pending" && !isSellerInActive && (
+                                <p className="text-xs text-muted-foreground italic">Waiting for seller's response…</p>
+                              )}
+                              <p className="text-[10px] text-muted-foreground mt-2 text-right">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </Card>
+                          </div>
+                        );
+                      }
+
                       const rawIsImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
                       const rawUrl = rawIsImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
-                      // Only allow https URLs from Supabase storage to prevent javascript: XSS
                       const isSafeImageUrl = rawIsImage && /^https:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-images\//i.test(rawUrl);
                       const isImage = isSafeImageUrl;
                       const imageUrl = isSafeImageUrl ? rawUrl : "";
@@ -325,6 +401,7 @@ const ChatPage = () => {
                         </div>
                       );
                     })}
+
                     {otherTyping && (
                       <div className="flex justify-start">
                         <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
