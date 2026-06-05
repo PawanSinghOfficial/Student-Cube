@@ -125,7 +125,7 @@ const BrowsePage = () => {
 
       if (seq !== fetchSeqRef.current) return;
 
-      const mapped: Product[] = rows.map((l) => {
+      const mapped: Product[] = rows.map((l: any) => {
         const p = profiles?.find((pr) => pr.user_id === l.user_id);
         return {
           id: l.id,
@@ -136,6 +136,7 @@ const BrowsePage = () => {
           category: l.category,
           college: l.college,
           condition: l.condition as Product["condition"],
+          tags: (l.tags as string[]) || [],
           seller: {
             id: l.user_id,
             name: p?.username || "Seller",
@@ -154,8 +155,30 @@ const BrowsePage = () => {
       setLoading(false);
       setLoadingMore(false);
     },
-    [debouncedSearch, selectedCategory, selectedConditions, selectedPriceRange, selectedCollege]
+    [debouncedSearch, selectedCategory, selectedConditions, selectedPriceRange, selectedCollege, selectedTag]
   );
+
+  // Load popular tags (top 12 by recent frequency)
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("tags")
+        .in("status", ["approved", "sold"])
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r: any) => {
+        (r.tags || []).forEach((t: string) => {
+          if (!t) return;
+          counts[t] = (counts[t] || 0) + 1;
+        });
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([t]) => t);
+      setPopularTags(sorted);
+    })();
+  }, []);
+
 
   // Reset and refetch from page 0 whenever filters change
   useEffect(() => {
