@@ -212,6 +212,7 @@ const BrowsePage = () => {
     setSelectedCollege(null);
     setSelectedConditions([]);
     setSelectedPriceRange(null);
+    setSelectedTag(null);
     setSearchQuery("");
   };
 
@@ -220,7 +221,11 @@ const BrowsePage = () => {
     selectedCollege,
     selectedConditions.length > 0,
     selectedPriceRange,
+    selectedTag,
   ].filter(Boolean).length;
+
+  const searchTermLower = debouncedSearch.trim().toLowerCase();
+
 
   const filteredProducts = products;
 
