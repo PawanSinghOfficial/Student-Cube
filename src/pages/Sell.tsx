@@ -29,6 +29,17 @@ const SellPage = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+
+  const addTag = (raw: string) => {
+    const t = raw.trim().toLowerCase().replace(/[,]/g, "").slice(0, 24);
+    if (!t) return;
+    setTags((prev) => (prev.includes(t) || prev.length >= MAX_TAGS ? prev : [...prev, t]));
+    setTagInput("");
+  };
+  const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
+
 
   const [formData, setFormData] = useState(() => {
     try {
