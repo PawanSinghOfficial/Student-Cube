@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 
 const DRAFT_KEY = "sell_draft_v1";
 const EMPTY_FORM = { title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" };
+const MAX_TAGS = 5;
+
 
 const SellPage = () => {
   const { toast } = useToast();
@@ -27,6 +29,17 @@ const SellPage = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+
+  const addTag = (raw: string) => {
+    const t = raw.trim().toLowerCase().replace(/[,]/g, "").slice(0, 24);
+    if (!t) return;
+    setTags((prev) => (prev.includes(t) || prev.length >= MAX_TAGS ? prev : [...prev, t]));
+    setTagInput("");
+  };
+  const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
+
 
   const [formData, setFormData] = useState(() => {
     try {
@@ -135,7 +148,9 @@ const SellPage = () => {
         condition: formData.condition,
         image_urls: imageUrls,
         video_url: videoUrl,
+        tags,
       });
+
 
       if (error) throw error;
 
@@ -151,6 +166,8 @@ const SellPage = () => {
       setImages([]);
       setImagePreviews([]);
       setVideoFile(null);
+      setTags([]);
+
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to submit listing.", variant: "destructive" });
     } finally {
@@ -323,6 +340,42 @@ const SellPage = () => {
                 required
               />
             </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <Label htmlFor="tags">
+                Tags <span className="text-muted-foreground text-xs">(up to {MAX_TAGS} — e.g. iphone, electronics, barely-used)</span>
+              </Label>
+              <div className="flex flex-wrap gap-2 p-2 rounded-lg border-2 border-input bg-background min-h-[3rem]">
+                {tags.map((t) => (
+                  <Badge key={t} variant="secondary" className="gap-1 capitalize">
+                    {t}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(t)} />
+                  </Badge>
+                ))}
+                {tags.length < MAX_TAGS && (
+                  <input
+                    id="tags"
+                    type="text"
+                    value={tagInput}
+                    placeholder={tags.length === 0 ? "Type a tag and press Enter" : "Add another…"}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === ",") {
+                        e.preventDefault();
+                        addTag(tagInput);
+                      } else if (e.key === "Backspace" && !tagInput && tags.length) {
+                        removeTag(tags[tags.length - 1]);
+                      }
+                    }}
+                    onBlur={() => tagInput && addTag(tagInput)}
+                    className="flex-1 min-w-[140px] bg-transparent outline-none text-sm"
+                  />
+                )}
+              </div>
+            </div>
+
+
 
             {/* Video Proof */}
             <div className="space-y-2">

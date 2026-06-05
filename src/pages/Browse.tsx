@@ -55,12 +55,15 @@ const BrowsePage = () => {
   const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const fetchSeqRef = useRef(0);
+
 
   // Debounce search query for server-side filtering
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
@@ -77,12 +80,20 @@ const BrowsePage = () => {
 
       let q = supabase
         .from("listings")
-        .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, created_at, updated_at")
+        .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, tags, created_at, updated_at")
         .in("status", ["approved", "sold"])
         .order("created_at", { ascending: false })
         .range(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE - 1);
 
-      if (debouncedSearch.trim()) q = q.ilike("title", `%${debouncedSearch.trim()}%`);
+      const term = debouncedSearch.trim();
+      if (term) {
+        const safe = term.replace(/[,()]/g, " ").toLowerCase();
+        // Match title OR description OR a tag containing the term
+        q = q.or(
+          `title.ilike.*${safe}*,description.ilike.*${safe}*,tags.cs.{${safe}}`
+        );
+      }
+      if (selectedTag) q = q.contains("tags", [selectedTag]);
       if (selectedCategory) {
         const catName = CATEGORIES.find((c) => c.id === selectedCategory)?.name;
         if (catName) q = q.eq("category", catName);
@@ -100,6 +111,7 @@ const BrowsePage = () => {
         q = q.ilike("college", `%${collegeKey}%`);
       }
 
+
       const { data: listings } = await q;
 
       // Stale response guard
@@ -113,7 +125,7 @@ const BrowsePage = () => {
 
       if (seq !== fetchSeqRef.current) return;
 
-      const mapped: Product[] = rows.map((l) => {
+      const mapped: Product[] = rows.map((l: any) => {
         const p = profiles?.find((pr) => pr.user_id === l.user_id);
         return {
           id: l.id,
@@ -124,6 +136,7 @@ const BrowsePage = () => {
           category: l.category,
           college: l.college,
           condition: l.condition as Product["condition"],
+          tags: (l.tags as string[]) || [],
           seller: {
             id: l.user_id,
             name: p?.username || "Seller",
@@ -142,8 +155,30 @@ const BrowsePage = () => {
       setLoading(false);
       setLoadingMore(false);
     },
-    [debouncedSearch, selectedCategory, selectedConditions, selectedPriceRange, selectedCollege]
+    [debouncedSearch, selectedCategory, selectedConditions, selectedPriceRange, selectedCollege, selectedTag]
   );
+
+  // Load popular tags (top 12 by recent frequency)
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("tags")
+        .in("status", ["approved", "sold"])
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r: any) => {
+        (r.tags || []).forEach((t: string) => {
+          if (!t) return;
+          counts[t] = (counts[t] || 0) + 1;
+        });
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([t]) => t);
+      setPopularTags(sorted);
+    })();
+  }, []);
+
 
   // Reset and refetch from page 0 whenever filters change
   useEffect(() => {
@@ -177,6 +212,7 @@ const BrowsePage = () => {
     setSelectedCollege(null);
     setSelectedConditions([]);
     setSelectedPriceRange(null);
+    setSelectedTag(null);
     setSearchQuery("");
   };
 
@@ -185,7 +221,11 @@ const BrowsePage = () => {
     selectedCollege,
     selectedConditions.length > 0,
     selectedPriceRange,
+    selectedTag,
   ].filter(Boolean).length;
+
+  const searchTermLower = debouncedSearch.trim().toLowerCase();
+
 
   const filteredProducts = products;
 
@@ -233,6 +273,27 @@ const BrowsePage = () => {
             </Button>
           </div>
         </div>
+
+        {popularTags.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Popular tags:</span>
+            {popularTags.map((t) => {
+              const active = selectedTag === t;
+              return (
+                <Badge
+                  key={t}
+                  variant={active ? "default" : "outline"}
+                  className="cursor-pointer capitalize hover:bg-primary hover:text-primary-foreground transition-colors"
+                  onClick={() => setSelectedTag(active ? null : t)}
+                >
+                  #{t}
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+
+
 
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={`lg:w-64 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}>
@@ -331,6 +392,12 @@ const BrowsePage = () => {
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedPriceRange(null)} />
                   </Badge>
                 )}
+                {selectedTag && (
+                  <Badge variant="default" className="gap-1 capitalize">
+                    #{selectedTag}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedTag(null)} />
+                  </Badge>
+                )}
               </div>
             )}
 
@@ -341,10 +408,25 @@ const BrowsePage = () => {
             ) : filteredProducts.length > 0 ? (
               <>
                 <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onQuickView={setQuickViewProduct} />
-                  ))}
+                  {filteredProducts.map((product) => {
+                    const matched = new Set<string>();
+                    if (selectedTag) matched.add(selectedTag);
+                    if (searchTermLower) {
+                      (product.tags || []).forEach((t) => {
+                        if (t.toLowerCase().includes(searchTermLower)) matched.add(t);
+                      });
+                    }
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onQuickView={setQuickViewProduct}
+                        matchedTags={Array.from(matched)}
+                      />
+                    );
+                  })}
                 </div>
+
                 <div ref={sentinelRef} className="py-8 flex justify-center text-sm text-muted-foreground">
                   {loadingMore ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />

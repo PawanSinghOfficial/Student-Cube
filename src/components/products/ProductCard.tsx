@@ -15,6 +15,7 @@ export interface Product {
   category: string;
   college: string;
   condition: "new" | "like-new" | "good" | "fair";
+  tags?: string[];
   seller: {
     id?: string;
     name: string;
@@ -33,7 +34,9 @@ interface ProductCardProps {
   product: Product;
   onQuickView?: (product: Product) => void;
   showCompare?: boolean;
+  matchedTags?: string[];
 }
+
 
 const conditionColors = {
   new: "success",
@@ -49,7 +52,7 @@ const conditionLabels = {
   fair: "Fair",
 };
 
-export function ProductCard({ product, onQuickView, showCompare = true }: ProductCardProps) {
+export function ProductCard({ product, onQuickView, showCompare = true, matchedTags = [] }: ProductCardProps) {
   const { addToCompare, removeFromCompare, isInCompare, compareProducts, maxProducts } = useCompare();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const inCompare = isInCompare(product.id);
@@ -153,6 +156,18 @@ export function ProductCard({ product, onQuickView, showCompare = true }: Produc
           <h3 className="font-medium text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">
             {product.title}
           </h3>
+
+          {matchedTags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {matchedTags.slice(0, 3).map((t) => (
+                <Badge key={t} variant="accent" className="text-[10px] px-1.5 py-0 capitalize">
+                  #{t}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+
 
           {/* College & Location */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
