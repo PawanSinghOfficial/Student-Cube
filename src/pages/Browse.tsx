@@ -55,12 +55,15 @@ const BrowsePage = () => {
   const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const fetchSeqRef = useRef(0);
+
 
   // Debounce search query for server-side filtering
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
