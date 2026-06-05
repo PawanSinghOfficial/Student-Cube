@@ -274,6 +274,27 @@ const BrowsePage = () => {
           </div>
         </div>
 
+        {popularTags.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Popular tags:</span>
+            {popularTags.map((t) => {
+              const active = selectedTag === t;
+              return (
+                <Badge
+                  key={t}
+                  variant={active ? "default" : "outline"}
+                  className="cursor-pointer capitalize hover:bg-primary hover:text-primary-foreground transition-colors"
+                  onClick={() => setSelectedTag(active ? null : t)}
+                >
+                  #{t}
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+
+
+
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={`lg:w-64 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}>
             <Card className="p-6 sticky top-24">
