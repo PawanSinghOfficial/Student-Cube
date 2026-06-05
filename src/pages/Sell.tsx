@@ -341,6 +341,42 @@ const SellPage = () => {
               />
             </div>
 
+            {/* Tags */}
+            <div className="space-y-2">
+              <Label htmlFor="tags">
+                Tags <span className="text-muted-foreground text-xs">(up to {MAX_TAGS} — e.g. iphone, electronics, barely-used)</span>
+              </Label>
+              <div className="flex flex-wrap gap-2 p-2 rounded-lg border-2 border-input bg-background min-h-[3rem]">
+                {tags.map((t) => (
+                  <Badge key={t} variant="secondary" className="gap-1 capitalize">
+                    {t}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(t)} />
+                  </Badge>
+                ))}
+                {tags.length < MAX_TAGS && (
+                  <input
+                    id="tags"
+                    type="text"
+                    value={tagInput}
+                    placeholder={tags.length === 0 ? "Type a tag and press Enter" : "Add another…"}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === ",") {
+                        e.preventDefault();
+                        addTag(tagInput);
+                      } else if (e.key === "Backspace" && !tagInput && tags.length) {
+                        removeTag(tags[tags.length - 1]);
+                      }
+                    }}
+                    onBlur={() => tagInput && addTag(tagInput)}
+                    className="flex-1 min-w-[140px] bg-transparent outline-none text-sm"
+                  />
+                )}
+              </div>
+            </div>
+
+
+
             {/* Video Proof */}
             <div className="space-y-2">
               <Label>Video Proof (Required for approval)</Label>
