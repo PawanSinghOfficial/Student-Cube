@@ -131,7 +131,22 @@ const ProductDetail = () => {
       ]);
       setCanReview(!!convo);
       setAlreadyReviewed(!!existing);
+      if (convo) {
+        const { data: pending } = await supabase
+          .from("messages")
+          .select("id")
+          .eq("conversation_id", convo.id)
+          .eq("sender_id", user.id)
+          .eq("message_type", "offer")
+          .eq("offer_status", "pending")
+          .limit(1)
+          .maybeSingle();
+        setHasPendingOffer(!!pending);
+      } else {
+        setHasPendingOffer(false);
+      }
     };
+
     check();
   }, [id, user, product]);
 
