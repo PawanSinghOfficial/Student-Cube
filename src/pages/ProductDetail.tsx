@@ -14,10 +14,13 @@ import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
-  CheckCircle, Copy, Loader2, Flag,
+  CheckCircle, Copy, Loader2, Flag, Tag,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ReportListingDialog } from "@/components/reports/ReportListingDialog";
+import { MakeOfferDialog } from "@/components/chat/MakeOfferDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface ListingFull {
   id: string;
