@@ -166,6 +166,8 @@ const SellPage = () => {
       setImages([]);
       setImagePreviews([]);
       setVideoFile(null);
+      setTags([]);
+
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to submit listing.", variant: "destructive" });
     } finally {
