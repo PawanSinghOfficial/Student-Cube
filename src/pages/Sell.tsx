@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 
 const DRAFT_KEY = "sell_draft_v1";
 const EMPTY_FORM = { title: "", category: "", college: "", price: "", originalPrice: "", condition: "", description: "" };
+const MAX_TAGS = 5;
+
 
 const SellPage = () => {
   const { toast } = useToast();
