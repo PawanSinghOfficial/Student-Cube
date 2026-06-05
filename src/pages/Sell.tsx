@@ -148,7 +148,9 @@ const SellPage = () => {
         condition: formData.condition,
         image_urls: imageUrls,
         video_url: videoUrl,
+        tags,
       });
+
 
       if (error) throw error;
 
