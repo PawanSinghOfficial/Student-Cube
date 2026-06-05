@@ -392,6 +392,12 @@ const BrowsePage = () => {
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedPriceRange(null)} />
                   </Badge>
                 )}
+                {selectedTag && (
+                  <Badge variant="default" className="gap-1 capitalize">
+                    #{selectedTag}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedTag(null)} />
+                  </Badge>
+                )}
               </div>
             )}
 
@@ -402,10 +408,25 @@ const BrowsePage = () => {
             ) : filteredProducts.length > 0 ? (
               <>
                 <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onQuickView={setQuickViewProduct} />
-                  ))}
+                  {filteredProducts.map((product) => {
+                    const matched = new Set<string>();
+                    if (selectedTag) matched.add(selectedTag);
+                    if (searchTermLower) {
+                      (product.tags || []).forEach((t) => {
+                        if (t.toLowerCase().includes(searchTermLower)) matched.add(t);
+                      });
+                    }
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onQuickView={setQuickViewProduct}
+                        matchedTags={Array.from(matched)}
+                      />
+                    );
+                  })}
                 </div>
+
                 <div ref={sentinelRef} className="py-8 flex justify-center text-sm text-muted-foreground">
                   {loadingMore ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
