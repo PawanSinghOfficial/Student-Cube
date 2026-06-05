@@ -490,6 +490,19 @@ const ProductDetail = () => {
           listingId={product.id}
         />
       )}
+
+      {product && !isOwnListing && (
+        <MakeOfferDialog
+          open={showOfferDialog}
+          onOpenChange={setShowOfferDialog}
+          listingId={product.id}
+          sellerId={product.user_id}
+          listingTitle={product.title}
+          listingPrice={product.price}
+          onSent={() => setHasPendingOffer(true)}
+        />
+      )}
+
     </Layout>
   );
 };
