@@ -157,6 +157,18 @@ export function ProductCard({ product, onQuickView, showCompare = true, matchedT
             {product.title}
           </h3>
 
+          {matchedTags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {matchedTags.slice(0, 3).map((t) => (
+                <Badge key={t} variant="accent" className="text-[10px] px-1.5 py-0 capitalize">
+                  #{t}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+
+
           {/* College & Location */}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3 w-3" />
