@@ -60,9 +60,12 @@ const ProductDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [hasPendingOffer, setHasPendingOffer] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
+
   const [product, setProduct] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
 
