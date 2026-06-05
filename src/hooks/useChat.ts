@@ -23,9 +23,13 @@ export interface Message {
   content: string;
   created_at: string;
   read_at: string | null;
+  message_type?: string;
+  offer_price?: number | null;
+  offer_status?: string | null;
 }
 
 export const IMAGE_MSG_PREFIX = "[img]";
+
 
 export function useChat() {
   const { user } = useAuth();

@@ -14,10 +14,13 @@ import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   Heart, Share2, MapPin, Clock, Eye, Shield, MessageCircle, CreditCard,
   AlertTriangle, ChevronLeft, ChevronRight, Star, BadgeCheck, Phone, Mail,
-  CheckCircle, Copy, Loader2, Flag,
+  CheckCircle, Copy, Loader2, Flag, Tag,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ReportListingDialog } from "@/components/reports/ReportListingDialog";
+import { MakeOfferDialog } from "@/components/chat/MakeOfferDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface ListingFull {
   id: string;
@@ -57,9 +60,12 @@ const ProductDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [hasPendingOffer, setHasPendingOffer] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
+
   const [product, setProduct] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -125,7 +131,22 @@ const ProductDetail = () => {
       ]);
       setCanReview(!!convo);
       setAlreadyReviewed(!!existing);
+      if (convo) {
+        const { data: pending } = await supabase
+          .from("messages")
+          .select("id")
+          .eq("conversation_id", convo.id)
+          .eq("sender_id", user.id)
+          .eq("message_type", "offer")
+          .eq("offer_status", "pending")
+          .limit(1)
+          .maybeSingle();
+        setHasPendingOffer(!!pending);
+      } else {
+        setHasPendingOffer(false);
+      }
     };
+
     check();
   }, [id, user, product]);
 
@@ -357,11 +378,35 @@ const ProductDetail = () => {
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
+              {!isOwnListing && !isSold && user && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="block w-full">
+                        <Button
+                          variant="secondary"
+                          size="lg"
+                          className="w-full gap-2"
+                          onClick={() => setShowOfferDialog(true)}
+                          disabled={hasPendingOffer}
+                        >
+                          <Tag className="h-4 w-4" />
+                          {hasPendingOffer ? "Offer Pending…" : "Make Offer"}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {hasPendingOffer && (
+                      <TooltipContent>You already have a pending offer on this listing.</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {isOwnListing && !isSold && (
                 <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
                   Mark as Sold
                 </Button>
               )}
+
               {canReview && (
                 <Button
                   variant="outline"
@@ -445,6 +490,19 @@ const ProductDetail = () => {
           listingId={product.id}
         />
       )}
+
+      {product && !isOwnListing && (
+        <MakeOfferDialog
+          open={showOfferDialog}
+          onOpenChange={setShowOfferDialog}
+          listingId={product.id}
+          sellerId={product.user_id}
+          listingTitle={product.title}
+          listingPrice={product.price}
+          onSent={() => setHasPendingOffer(true)}
+        />
+      )}
+
     </Layout>
   );
 };

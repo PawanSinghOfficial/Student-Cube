@@ -112,6 +112,9 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          message_type: string
+          offer_price: number | null
+          offer_status: string | null
           read_at: string | null
           sender_id: string
         }
@@ -120,6 +123,9 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          message_type?: string
+          offer_price?: number | null
+          offer_status?: string | null
           read_at?: string | null
           sender_id: string
         }
@@ -128,6 +134,9 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          message_type?: string
+          offer_price?: number | null
+          offer_status?: string | null
           read_at?: string | null
           sender_id?: string
         }

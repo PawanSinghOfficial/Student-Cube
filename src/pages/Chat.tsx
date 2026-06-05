@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon } from "lucide-react";
+import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon, Tag, CheckCircle2, XCircle } from "lucide-react";
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat, Conversation, IMAGE_MSG_PREFIX } from "@/hooks/useChat";
@@ -38,8 +38,49 @@ const ChatPage = () => {
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
+  const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
+
+  const handleOfferResponse = async (msg: any, accept: boolean) => {
+    if (!activeConversation || !user) return;
+    setRespondingOfferId(msg.id);
+    try {
+      const { error: updErr } = await supabase
+        .from("messages")
+        .update({ offer_status: accept ? "accepted" : "declined" })
+        .eq("id", msg.id)
+        .eq("offer_status", "pending");
+      if (updErr) throw updErr;
+
+      if (accept) {
+        const { error: lErr } = await supabase
+          .from("listings")
+          .update({ status: "sold" })
+          .eq("id", activeConversation.listing_id)
+          .eq("user_id", user.id);
+        if (lErr) throw lErr;
+      }
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: accept
+          ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+          : `❌ Offer of ₹${Number(msg.offer_price).toLocaleString()} declined.`,
+        message_type: "system",
+      } as any);
+
+      toast({ title: accept ? "Offer accepted" : "Offer declined" });
+    } catch (e: any) {
+      toast({ title: "Action failed", description: e?.message, variant: "destructive" });
+    } finally {
+      setRespondingOfferId(null);
+    }
+  };
+
 
   // Auto-open conversation from ?listing=<id> URL param
   useEffect(() => {
@@ -235,11 +276,87 @@ const ChatPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {messages.map((msg) => {
+                    {messages.map((msg: any) => {
                       const isOwn = msg.sender_id === user.id;
+
+                      // System messages — centered pill
+                      if (msg.message_type === "system") {
+                        return (
+                          <div key={msg.id} className="flex justify-center">
+                            <div className="text-xs px-3 py-1.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                              {msg.content}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // Offer messages — distinct card
+                      if (msg.message_type === "offer") {
+                        const status = msg.offer_status as string;
+                        const statusColor =
+                          status === "accepted" ? "success" :
+                          status === "declined" ? "destructive" :
+                          "secondary";
+                        return (
+                          <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                            <Card className={cn(
+                              "max-w-[85%] p-4 border-2",
+                              status === "pending" ? "border-accent/50 bg-accent/5" :
+                              status === "accepted" ? "border-success/50 bg-success/5" :
+                              "border-destructive/30 bg-destructive/5"
+                            )}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Tag className="h-4 w-4 text-accent" />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isOwn ? "Your Offer" : "Offer Received"}
+                                </span>
+                                <Badge variant={statusColor as any} className="ml-auto text-[10px] capitalize">
+                                  {status}
+                                </Badge>
+                              </div>
+                              <p className="text-2xl font-bold text-primary mb-1">
+                                ₹{Number(msg.offer_price ?? 0).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3 truncate">
+                                For: {activeConversation?.listing_title}
+                              </p>
+                              {status === "pending" && isSellerInActive && (
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="success"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleOfferResponse(msg, true)}
+                                  >
+                                    {respondingOfferId === msg.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleOfferResponse(msg, false)}
+                                  >
+                                    <XCircle className="h-3 w-3" />
+                                    Decline
+                                  </Button>
+                                </div>
+                              )}
+                              {status === "pending" && !isSellerInActive && (
+                                <p className="text-xs text-muted-foreground italic">Waiting for seller's response…</p>
+                              )}
+                              <p className="text-[10px] text-muted-foreground mt-2 text-right">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </Card>
+                          </div>
+                        );
+                      }
+
                       const rawIsImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
                       const rawUrl = rawIsImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
-                      // Only allow https URLs from Supabase storage to prevent javascript: XSS
                       const isSafeImageUrl = rawIsImage && /^https:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-images\//i.test(rawUrl);
                       const isImage = isSafeImageUrl;
                       const imageUrl = isSafeImageUrl ? rawUrl : "";
@@ -284,6 +401,7 @@ const ChatPage = () => {
                         </div>
                       );
                     })}
+
                     {otherTyping && (
                       <div className="flex justify-start">
                         <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
