@@ -378,11 +378,35 @@ const ProductDetail = () => {
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
+              {!isOwnListing && !isSold && user && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="block w-full">
+                        <Button
+                          variant="secondary"
+                          size="lg"
+                          className="w-full gap-2"
+                          onClick={() => setShowOfferDialog(true)}
+                          disabled={hasPendingOffer}
+                        >
+                          <Tag className="h-4 w-4" />
+                          {hasPendingOffer ? "Offer Pending…" : "Make Offer"}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {hasPendingOffer && (
+                      <TooltipContent>You already have a pending offer on this listing.</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {isOwnListing && !isSold && (
                 <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
                   Mark as Sold
                 </Button>
               )}
+
               {canReview && (
                 <Button
                   variant="outline"
