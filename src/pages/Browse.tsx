@@ -80,12 +80,20 @@ const BrowsePage = () => {
 
       let q = supabase
         .from("listings")
-        .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, created_at, updated_at")
+        .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, tags, created_at, updated_at")
         .in("status", ["approved", "sold"])
         .order("created_at", { ascending: false })
         .range(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE - 1);
 
-      if (debouncedSearch.trim()) q = q.ilike("title", `%${debouncedSearch.trim()}%`);
+      const term = debouncedSearch.trim();
+      if (term) {
+        const safe = term.replace(/[,()]/g, " ").toLowerCase();
+        // Match title OR description OR a tag containing the term
+        q = q.or(
+          `title.ilike.*${safe}*,description.ilike.*${safe}*,tags.cs.{${safe}}`
+        );
+      }
+      if (selectedTag) q = q.contains("tags", [selectedTag]);
       if (selectedCategory) {
         const catName = CATEGORIES.find((c) => c.id === selectedCategory)?.name;
         if (catName) q = q.eq("category", catName);
@@ -102,6 +110,7 @@ const BrowsePage = () => {
         const collegeKey = selectedCollege.split(" - ")[0];
         q = q.ilike("college", `%${collegeKey}%`);
       }
+
 
       const { data: listings } = await q;
 
