@@ -52,7 +52,7 @@ const conditionLabels = {
   fair: "Fair",
 };
 
-export function ProductCard({ product, onQuickView, showCompare = true }: ProductCardProps) {
+export function ProductCard({ product, onQuickView, showCompare = true, matchedTags = [] }: ProductCardProps) {
   const { addToCompare, removeFromCompare, isInCompare, compareProducts, maxProducts } = useCompare();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const inCompare = isInCompare(product.id);
