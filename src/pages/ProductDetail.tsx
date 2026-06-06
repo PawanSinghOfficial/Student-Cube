@@ -150,6 +150,20 @@ const ProductDetail = () => {
     check();
   }, [id, user, product]);
 
+  useEffect(() => {
+    if (!id || !user) {
+      setContactUnlocked(false);
+      return;
+    }
+    supabase
+      .from("contact_unlocks")
+      .select("id")
+      .eq("listing_id", id)
+      .eq("buyer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setContactUnlocked(!!data));
+  }, [id, user]);
+
   if (loading) {
     return (
       <Layout>
