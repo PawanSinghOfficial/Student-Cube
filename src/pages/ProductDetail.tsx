@@ -150,6 +150,20 @@ const ProductDetail = () => {
     check();
   }, [id, user, product]);
 
+  useEffect(() => {
+    if (!id || !user) {
+      setContactUnlocked(false);
+      return;
+    }
+    supabase
+      .from("contact_unlocks")
+      .select("id")
+      .eq("listing_id", id)
+      .eq("buyer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setContactUnlocked(!!data));
+  }, [id, user]);
+
   if (loading) {
     return (
       <Layout>
@@ -187,7 +201,15 @@ const ProductDetail = () => {
   };
 
   const handleContactSeller = () => setShowPaymentDialog(true);
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
+    if (!user || !product) return;
+    const { error } = await supabase
+      .from("contact_unlocks")
+      .insert({ listing_id: product.id, buyer_id: user.id, amount: 9 });
+    if (error && !error.message.toLowerCase().includes("duplicate")) {
+      toast({ title: "Could not record unlock", description: error.message, variant: "destructive" });
+      return;
+    }
     setContactUnlocked(true);
     toast({ title: "Contact Access Granted!", description: "You can now view seller contact details and chat freely." });
   };
