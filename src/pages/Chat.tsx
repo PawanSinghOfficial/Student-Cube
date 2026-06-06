@@ -107,6 +107,91 @@ const ChatPage = () => {
     }
   };
 
+  const handleRequestFreeze = async () => {
+    if (!activeConversation || !user) return;
+    setDealActionLoading(true);
+    try {
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: "❄️ Requested to freeze this deal. Waiting for the other party to confirm.",
+        message_type: "deal_freeze",
+        offer_status: "pending",
+      } as any);
+      if (error) throw error;
+      toast({ title: "Deal freeze requested", description: "Waiting for the other party to accept." });
+    } catch (e: any) {
+      toast({ title: "Could not request freeze", description: e?.message, variant: "destructive" });
+    } finally {
+      setDealActionLoading(false);
+    }
+  };
+
+  const handleFreezeResponse = async (msg: any, accept: boolean) => {
+    if (!activeConversation || !user) return;
+    setRespondingOfferId(msg.id);
+    try {
+      const { error: updErr } = await supabase
+        .from("messages")
+        .update({ offer_status: accept ? "accepted" : "declined" })
+        .eq("id", msg.id)
+        .eq("offer_status", "pending");
+      if (updErr) throw updErr;
+
+      if (accept) {
+        const { error: lErr } = await supabase
+          .from("listings")
+          .update({ status: "frozen" })
+          .eq("id", activeConversation.listing_id);
+        if (lErr) throw lErr;
+        setActiveListingStatus("frozen");
+      }
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: accept
+          ? "🔒 Deal frozen by both parties. Listing reserved — buyer can mark it complete once the exchange is done."
+          : "❌ Deal freeze request declined.",
+        message_type: "system",
+      } as any);
+
+      toast({ title: accept ? "Deal frozen" : "Freeze declined" });
+    } catch (e: any) {
+      toast({ title: "Action failed", description: e?.message, variant: "destructive" });
+    } finally {
+      setRespondingOfferId(null);
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!activeConversation || !user) return;
+    setDealActionLoading(true);
+    try {
+      const { error: lErr } = await supabase
+        .from("listings")
+        .update({ status: "sold" })
+        .eq("id", activeConversation.listing_id);
+      if (lErr) throw lErr;
+      setActiveListingStatus("sold");
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: "✅ Deal completed by the buyer. Listing has been removed from the marketplace.",
+        message_type: "system",
+      } as any);
+
+      toast({ title: "Deal completed", description: "Listing has been marked as sold." });
+    } catch (e: any) {
+      toast({ title: "Could not complete deal", description: e?.message, variant: "destructive" });
+    } finally {
+      setDealActionLoading(false);
+    }
+  };
+
+
+
 
   // Auto-open conversation from ?listing=<id> URL param
   useEffect(() => {
