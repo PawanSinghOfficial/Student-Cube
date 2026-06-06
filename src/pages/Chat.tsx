@@ -466,6 +466,72 @@ const ChatPage = () => {
                         );
                       }
 
+                      // Deal freeze request — distinct card
+                      if (msg.message_type === "deal_freeze") {
+                        const status = (msg.offer_status ?? "pending") as string;
+                        const canRespond = status === "pending" && msg.sender_id !== user.id;
+                        return (
+                          <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                            <Card className={cn(
+                              "max-w-[85%] p-4 border-2",
+                              status === "pending" ? "border-primary/50 bg-primary/5" :
+                              status === "accepted" ? "border-success/50 bg-success/5" :
+                              "border-destructive/30 bg-destructive/5"
+                            )}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Snowflake className="h-4 w-4 text-primary" />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isOwn ? "You requested a deal freeze" : "Deal freeze requested"}
+                                </span>
+                                <Badge
+                                  variant={status === "accepted" ? "success" : status === "declined" ? "destructive" : "secondary"}
+                                  className="ml-auto text-[10px] capitalize"
+                                >
+                                  {status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-foreground mb-1">
+                                Freezing reserves <span className="font-medium">{activeConversation?.listing_title}</span> for this conversation only.
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                Once frozen, the buyer can mark the deal complete after the exchange.
+                              </p>
+                              {canRespond ? (
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="success"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleFreezeResponse(msg, true)}
+                                  >
+                                    {respondingOfferId === msg.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                    Accept Freeze
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleFreezeResponse(msg, false)}
+                                  >
+                                    <XCircle className="h-3 w-3" />
+                                    Decline
+                                  </Button>
+                                </div>
+                              ) : status === "pending" ? (
+                                <p className="text-xs text-muted-foreground italic">Waiting for the other party to respond…</p>
+                              ) : null}
+                              <p className="text-[10px] text-muted-foreground mt-2 text-right">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </Card>
+                          </div>
+                        );
+                      }
+
+
+
                       const rawIsImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
                       const rawUrl = rawIsImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
                       const isSafeImageUrl = rawIsImage && /^https:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-images\//i.test(rawUrl);
