@@ -188,6 +188,8 @@ const ProductDetail = () => {
   const images = product.image_urls?.length ? product.image_urls : ["/placeholder.svg"];
   const isOwnListing = user?.id === product.user_id;
   const isSold = product.status === "sold";
+  const isFrozen = product.status === "frozen";
+  const isReservedOrSold = isSold || isFrozen;
 
   const handleMarkSold = async () => {
     if (!user || !isOwnListing) return;
