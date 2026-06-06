@@ -595,8 +595,60 @@ const ChatPage = () => {
                 )}
               </ScrollArea>
 
+              {/* Deal action bar */}
+              {(activeListingStatus === "approved" || activeListingStatus === "frozen" || activeListingStatus === "sold") && (
+                <div className="border-t border-border px-3 py-2 bg-secondary/40 flex flex-wrap items-center gap-2">
+                  {activeListingStatus === "sold" ? (
+                    <Badge variant="success" className="gap-1">
+                      <PackageCheck className="h-3 w-3" /> Deal completed — listing sold
+                    </Badge>
+                  ) : activeListingStatus === "frozen" ? (
+                    <>
+                      <Badge variant="secondary" className="gap-1 border border-primary/40 text-primary">
+                        <Snowflake className="h-3 w-3" /> Deal frozen — listing reserved
+                      </Badge>
+                      {isBuyerInActive && (
+                        <Button
+                          size="sm"
+                          variant="success"
+                          className="ml-auto gap-1"
+                          disabled={dealActionLoading}
+                          onClick={handleMarkComplete}
+                        >
+                          {dealActionLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <PackageCheck className="h-3 w-3" />}
+                          Mark Deal Complete
+                        </Button>
+                      )}
+                      {!isBuyerInActive && (
+                        <span className="ml-auto text-xs text-muted-foreground italic">
+                          Waiting for the buyer to confirm completion…
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        Agreed on the deal? Freeze it together to reserve this listing.
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-auto gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                        disabled={dealActionLoading || !!pendingFreeze}
+                        onClick={handleRequestFreeze}
+                        title={pendingFreeze ? "A freeze request is already pending" : undefined}
+                      >
+                        <Snowflake className="h-3 w-3" />
+                        {pendingFreeze ? "Freeze pending…" : "Request Deal Freeze"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* Quick keywords + input */}
               <div className="border-t border-border p-3 bg-card">
+
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {PREDEFINED_CHAT_KEYWORDS.map((keyword) => (
                     <Badge
