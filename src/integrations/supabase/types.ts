@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_unlocks: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          upi_reference: string | null
+        }
+        Insert: {
+          amount?: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          upi_reference?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          upi_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_unlocks_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           buyer_id: string
