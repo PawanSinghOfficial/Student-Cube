@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon, Tag, CheckCircle2, XCircle } from "lucide-react";
+import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon, Tag, CheckCircle2, XCircle, Snowflake, PackageCheck } from "lucide-react";
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat, Conversation, IMAGE_MSG_PREFIX } from "@/hooks/useChat";
@@ -39,10 +39,36 @@ const ChatPage = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
+  const [activeListingStatus, setActiveListingStatus] = useState<string | null>(null);
+  const [dealActionLoading, setDealActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
+  const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
+
+  // Track the active listing's status (for freeze / complete actions)
+  useEffect(() => {
+    if (!activeConversation) {
+      setActiveListingStatus(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("listings")
+      .select("status")
+      .eq("id", activeConversation.listing_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setActiveListingStatus(data?.status ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [activeConversation, messages.length]);
+
+  // Pending freeze request in this conversation (if any)
+  const pendingFreeze = (messages as any[]).find(
+    (m) => m.message_type === "deal_freeze" && (m.offer_status ?? "pending") === "pending"
+  );
 
   const handleOfferResponse = async (msg: any, accept: boolean) => {
     if (!activeConversation || !user) return;
@@ -80,6 +106,91 @@ const ChatPage = () => {
       setRespondingOfferId(null);
     }
   };
+
+  const handleRequestFreeze = async () => {
+    if (!activeConversation || !user) return;
+    setDealActionLoading(true);
+    try {
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: "❄️ Requested to freeze this deal. Waiting for the other party to confirm.",
+        message_type: "deal_freeze",
+        offer_status: "pending",
+      } as any);
+      if (error) throw error;
+      toast({ title: "Deal freeze requested", description: "Waiting for the other party to accept." });
+    } catch (e: any) {
+      toast({ title: "Could not request freeze", description: e?.message, variant: "destructive" });
+    } finally {
+      setDealActionLoading(false);
+    }
+  };
+
+  const handleFreezeResponse = async (msg: any, accept: boolean) => {
+    if (!activeConversation || !user) return;
+    setRespondingOfferId(msg.id);
+    try {
+      const { error: updErr } = await supabase
+        .from("messages")
+        .update({ offer_status: accept ? "accepted" : "declined" })
+        .eq("id", msg.id)
+        .eq("offer_status", "pending");
+      if (updErr) throw updErr;
+
+      if (accept) {
+        const { error: lErr } = await supabase
+          .from("listings")
+          .update({ status: "frozen" })
+          .eq("id", activeConversation.listing_id);
+        if (lErr) throw lErr;
+        setActiveListingStatus("frozen");
+      }
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: accept
+          ? "🔒 Deal frozen by both parties. Listing reserved — buyer can mark it complete once the exchange is done."
+          : "❌ Deal freeze request declined.",
+        message_type: "system",
+      } as any);
+
+      toast({ title: accept ? "Deal frozen" : "Freeze declined" });
+    } catch (e: any) {
+      toast({ title: "Action failed", description: e?.message, variant: "destructive" });
+    } finally {
+      setRespondingOfferId(null);
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!activeConversation || !user) return;
+    setDealActionLoading(true);
+    try {
+      const { error: lErr } = await supabase
+        .from("listings")
+        .update({ status: "sold" })
+        .eq("id", activeConversation.listing_id);
+      if (lErr) throw lErr;
+      setActiveListingStatus("sold");
+
+      await supabase.from("messages").insert({
+        conversation_id: activeConversation.id,
+        sender_id: user.id,
+        content: "✅ Deal completed by the buyer. Listing has been removed from the marketplace.",
+        message_type: "system",
+      } as any);
+
+      toast({ title: "Deal completed", description: "Listing has been marked as sold." });
+    } catch (e: any) {
+      toast({ title: "Could not complete deal", description: e?.message, variant: "destructive" });
+    } finally {
+      setDealActionLoading(false);
+    }
+  };
+
+
 
 
   // Auto-open conversation from ?listing=<id> URL param
@@ -355,6 +466,72 @@ const ChatPage = () => {
                         );
                       }
 
+                      // Deal freeze request — distinct card
+                      if (msg.message_type === "deal_freeze") {
+                        const status = (msg.offer_status ?? "pending") as string;
+                        const canRespond = status === "pending" && msg.sender_id !== user.id;
+                        return (
+                          <div key={msg.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                            <Card className={cn(
+                              "max-w-[85%] p-4 border-2",
+                              status === "pending" ? "border-primary/50 bg-primary/5" :
+                              status === "accepted" ? "border-success/50 bg-success/5" :
+                              "border-destructive/30 bg-destructive/5"
+                            )}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Snowflake className="h-4 w-4 text-primary" />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isOwn ? "You requested a deal freeze" : "Deal freeze requested"}
+                                </span>
+                                <Badge
+                                  variant={status === "accepted" ? "success" : status === "declined" ? "destructive" : "secondary"}
+                                  className="ml-auto text-[10px] capitalize"
+                                >
+                                  {status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-foreground mb-1">
+                                Freezing reserves <span className="font-medium">{activeConversation?.listing_title}</span> for this conversation only.
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                Once frozen, the buyer can mark the deal complete after the exchange.
+                              </p>
+                              {canRespond ? (
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="success"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleFreezeResponse(msg, true)}
+                                  >
+                                    {respondingOfferId === msg.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                    Accept Freeze
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 gap-1"
+                                    disabled={respondingOfferId === msg.id}
+                                    onClick={() => handleFreezeResponse(msg, false)}
+                                  >
+                                    <XCircle className="h-3 w-3" />
+                                    Decline
+                                  </Button>
+                                </div>
+                              ) : status === "pending" ? (
+                                <p className="text-xs text-muted-foreground italic">Waiting for the other party to respond…</p>
+                              ) : null}
+                              <p className="text-[10px] text-muted-foreground mt-2 text-right">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </Card>
+                          </div>
+                        );
+                      }
+
+
+
                       const rawIsImage = msg.content.startsWith(IMAGE_MSG_PREFIX);
                       const rawUrl = rawIsImage ? msg.content.slice(IMAGE_MSG_PREFIX.length) : "";
                       const isSafeImageUrl = rawIsImage && /^https:\/\/[^\s]+\/storage\/v1\/object\/public\/chat-images\//i.test(rawUrl);
@@ -418,8 +595,60 @@ const ChatPage = () => {
                 )}
               </ScrollArea>
 
+              {/* Deal action bar */}
+              {(activeListingStatus === "approved" || activeListingStatus === "frozen" || activeListingStatus === "sold") && (
+                <div className="border-t border-border px-3 py-2 bg-secondary/40 flex flex-wrap items-center gap-2">
+                  {activeListingStatus === "sold" ? (
+                    <Badge variant="success" className="gap-1">
+                      <PackageCheck className="h-3 w-3" /> Deal completed — listing sold
+                    </Badge>
+                  ) : activeListingStatus === "frozen" ? (
+                    <>
+                      <Badge variant="secondary" className="gap-1 border border-primary/40 text-primary">
+                        <Snowflake className="h-3 w-3" /> Deal frozen — listing reserved
+                      </Badge>
+                      {isBuyerInActive && (
+                        <Button
+                          size="sm"
+                          variant="success"
+                          className="ml-auto gap-1"
+                          disabled={dealActionLoading}
+                          onClick={handleMarkComplete}
+                        >
+                          {dealActionLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <PackageCheck className="h-3 w-3" />}
+                          Mark Deal Complete
+                        </Button>
+                      )}
+                      {!isBuyerInActive && (
+                        <span className="ml-auto text-xs text-muted-foreground italic">
+                          Waiting for the buyer to confirm completion…
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        Agreed on the deal? Freeze it together to reserve this listing.
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-auto gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                        disabled={dealActionLoading || !!pendingFreeze}
+                        onClick={handleRequestFreeze}
+                        title={pendingFreeze ? "A freeze request is already pending" : undefined}
+                      >
+                        <Snowflake className="h-3 w-3" />
+                        {pendingFreeze ? "Freeze pending…" : "Request Deal Freeze"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* Quick keywords + input */}
               <div className="border-t border-border p-3 bg-card">
+
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {PREDEFINED_CHAT_KEYWORDS.map((keyword) => (
                     <Badge

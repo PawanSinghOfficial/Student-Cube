@@ -28,6 +28,7 @@ export interface Product {
   views: number;
   isFeatured?: boolean;
   isSold?: boolean;
+  isReserved?: boolean;
 }
 
 interface ProductCardProps {
@@ -134,12 +135,18 @@ export function ProductCard({ product, onQuickView, showCompare = true, matchedT
             )}
           </div>
           
-          {/* Sold overlay */}
-          {product.isSold && (
+          {/* Sold / Reserved overlay */}
+          {product.isSold ? (
             <div className="absolute inset-0 bg-foreground/70 flex items-center justify-center">
               <Badge variant="destructive" className="text-lg px-4 py-2">SOLD OUT</Badge>
             </div>
-          )}
+          ) : product.isReserved ? (
+            <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
+              <Badge variant="secondary" className="text-base px-4 py-2 border-2 border-primary text-primary bg-background/90">
+                RESERVED
+              </Badge>
+            </div>
+          ) : null}
         </div>
 
         {/* Content */}

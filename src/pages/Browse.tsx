@@ -81,7 +81,7 @@ const BrowsePage = () => {
       let q = supabase
         .from("listings")
         .select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, tags, created_at, updated_at")
-        .in("status", ["approved", "sold"])
+        .in("status", ["approved", "sold", "frozen"])
         .order("created_at", { ascending: false })
         .range(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE - 1);
 
@@ -146,6 +146,7 @@ const BrowsePage = () => {
           createdAt: timeAgo(l.created_at),
           views: 0,
           isSold: l.status === "sold",
+          isReserved: l.status === "frozen",
         };
       });
 
@@ -164,7 +165,7 @@ const BrowsePage = () => {
       const { data } = await supabase
         .from("listings")
         .select("tags")
-        .in("status", ["approved", "sold"])
+        .in("status", ["approved", "sold", "frozen"])
         .order("created_at", { ascending: false })
         .limit(200);
       const counts: Record<string, number> = {};

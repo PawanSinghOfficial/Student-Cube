@@ -188,6 +188,8 @@ const ProductDetail = () => {
   const images = product.image_urls?.length ? product.image_urls : ["/placeholder.svg"];
   const isOwnListing = user?.id === product.user_id;
   const isSold = product.status === "sold";
+  const isFrozen = product.status === "frozen";
+  const isReservedOrSold = isSold || isFrozen;
 
   const handleMarkSold = async () => {
     if (!user || !isOwnListing) return;
@@ -270,11 +272,18 @@ const ProductDetail = () => {
                 </>
               )}
               <div className="absolute top-4 left-4 flex gap-2">
-                {discount > 0 && !isSold && <Badge variant="accent">{discount}% OFF</Badge>}
+                {discount > 0 && !isReservedOrSold && <Badge variant="accent">{discount}% OFF</Badge>}
               </div>
               {isSold && (
                 <div className="absolute inset-0 bg-foreground/70 flex items-center justify-center">
                   <Badge variant="destructive" className="text-2xl px-6 py-3">SOLD</Badge>
+                </div>
+              )}
+              {isFrozen && (
+                <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
+                  <Badge variant="secondary" className="text-xl px-6 py-3 border-2 border-primary text-primary bg-background/90">
+                    RESERVED
+                  </Badge>
                 </div>
               )}
               <Button
@@ -382,6 +391,13 @@ const ProductDetail = () => {
                   <p className="font-semibold text-destructive">This item is sold</p>
                   <p className="text-sm text-muted-foreground mt-1">The seller is no longer accepting offers.</p>
                 </Card>
+              ) : isFrozen ? (
+                <Card className="p-4 bg-primary/10 border-primary/30 text-center">
+                  <p className="font-semibold text-primary">This deal is frozen</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    The listing is currently reserved for another buyer. Check back if the deal falls through.
+                  </p>
+                </Card>
               ) : contactUnlocked ? (
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
@@ -392,15 +408,15 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isSold}>
+                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isReservedOrSold}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {isSold ? "Sold" : isOwnListing ? "Your listing" : "Chat with Seller"}
+                  {isSold ? "Sold" : isFrozen ? "Reserved" : isOwnListing ? "Your listing" : "Chat with Seller"}
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
-              {!isOwnListing && !isSold && user && (
+              {!isOwnListing && !isReservedOrSold && user && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -423,7 +439,7 @@ const ProductDetail = () => {
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {isOwnListing && !isSold && (
+              {isOwnListing && !isReservedOrSold && (
                 <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
                   Mark as Sold
                 </Button>
