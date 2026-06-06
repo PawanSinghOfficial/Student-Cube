@@ -28,6 +28,7 @@ export interface Product {
   views: number;
   isFeatured?: boolean;
   isSold?: boolean;
+  isReserved?: boolean;
 }
 
 interface ProductCardProps {
