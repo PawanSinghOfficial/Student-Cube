@@ -272,11 +272,18 @@ const ProductDetail = () => {
                 </>
               )}
               <div className="absolute top-4 left-4 flex gap-2">
-                {discount > 0 && !isSold && <Badge variant="accent">{discount}% OFF</Badge>}
+                {discount > 0 && !isReservedOrSold && <Badge variant="accent">{discount}% OFF</Badge>}
               </div>
               {isSold && (
                 <div className="absolute inset-0 bg-foreground/70 flex items-center justify-center">
                   <Badge variant="destructive" className="text-2xl px-6 py-3">SOLD</Badge>
+                </div>
+              )}
+              {isFrozen && (
+                <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
+                  <Badge variant="secondary" className="text-xl px-6 py-3 border-2 border-primary text-primary bg-background/90">
+                    RESERVED
+                  </Badge>
                 </div>
               )}
               <Button
