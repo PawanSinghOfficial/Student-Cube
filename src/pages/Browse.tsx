@@ -146,6 +146,7 @@ const BrowsePage = () => {
           createdAt: timeAgo(l.created_at),
           views: 0,
           isSold: l.status === "sold",
+          isReserved: l.status === "frozen",
         };
       });
 
