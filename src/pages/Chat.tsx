@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon, Tag, CheckCircle2, XCircle } from "lucide-react";
+import { MessageCircle, Send, AlertTriangle, Lock, Loader2, ArrowLeft, Check, CheckCheck, ImageIcon, Tag, CheckCircle2, XCircle, Snowflake, PackageCheck } from "lucide-react";
 import { PREDEFINED_CHAT_KEYWORDS } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat, Conversation, IMAGE_MSG_PREFIX } from "@/hooks/useChat";
