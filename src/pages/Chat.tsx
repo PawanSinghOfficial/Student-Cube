@@ -39,10 +39,36 @@ const ChatPage = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
+  const [activeListingStatus, setActiveListingStatus] = useState<string | null>(null);
+  const [dealActionLoading, setDealActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
+  const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
+
+  // Track the active listing's status (for freeze / complete actions)
+  useEffect(() => {
+    if (!activeConversation) {
+      setActiveListingStatus(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("listings")
+      .select("status")
+      .eq("id", activeConversation.listing_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setActiveListingStatus(data?.status ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [activeConversation, messages.length]);
+
+  // Pending freeze request in this conversation (if any)
+  const pendingFreeze = (messages as any[]).find(
+    (m) => m.message_type === "deal_freeze" && (m.offer_status ?? "pending") === "pending"
+  );
 
   const handleOfferResponse = async (msg: any, accept: boolean) => {
     if (!activeConversation || !user) return;
