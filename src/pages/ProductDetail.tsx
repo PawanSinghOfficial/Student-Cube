@@ -391,6 +391,13 @@ const ProductDetail = () => {
                   <p className="font-semibold text-destructive">This item is sold</p>
                   <p className="text-sm text-muted-foreground mt-1">The seller is no longer accepting offers.</p>
                 </Card>
+              ) : isFrozen ? (
+                <Card className="p-4 bg-primary/10 border-primary/30 text-center">
+                  <p className="font-semibold text-primary">This deal is frozen</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    The listing is currently reserved for another buyer. Check back if the deal falls through.
+                  </p>
+                </Card>
               ) : contactUnlocked ? (
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
@@ -401,15 +408,15 @@ const ProductDetail = () => {
                 </Button>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isSold}>
+                <Button variant="outline" size="lg" onClick={handleChatClick} disabled={isOwnListing || isReservedOrSold}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  {isSold ? "Sold" : isOwnListing ? "Your listing" : "Chat with Seller"}
+                  {isSold ? "Sold" : isFrozen ? "Reserved" : isOwnListing ? "Your listing" : "Chat with Seller"}
                 </Button>
                 <Button variant="outline" size="lg">
                   <Share2 className="h-4 w-4 mr-2" />Share
                 </Button>
               </div>
-              {!isOwnListing && !isSold && user && (
+              {!isOwnListing && !isReservedOrSold && user && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -432,7 +439,7 @@ const ProductDetail = () => {
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {isOwnListing && !isSold && (
+              {isOwnListing && !isReservedOrSold && (
                 <Button variant="destructive" size="lg" className="w-full" onClick={handleMarkSold}>
                   Mark as Sold
                 </Button>
