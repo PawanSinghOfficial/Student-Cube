@@ -53,7 +53,7 @@ const AdminPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     const [{ data: listingsData }, { data: reportsData }] = await Promise.all([
-      supabase.from("listings").select("*").order("created_at", { ascending: false }),
+      supabase.from("listings").select("id, user_id, title, description, category, college, price, original_price, condition, status, image_urls, video_url, approved_at, created_at, updated_at, tags").order("created_at", { ascending: false }),
       supabase.from("reports").select("*").order("created_at", { ascending: false }),
     ]);
 
