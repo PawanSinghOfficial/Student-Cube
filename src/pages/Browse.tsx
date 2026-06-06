@@ -165,7 +165,7 @@ const BrowsePage = () => {
       const { data } = await supabase
         .from("listings")
         .select("tags")
-        .in("status", ["approved", "sold"])
+        .in("status", ["approved", "sold", "frozen"])
         .order("created_at", { ascending: false })
         .limit(200);
       const counts: Record<string, number> = {};
