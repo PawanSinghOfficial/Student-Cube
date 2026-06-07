@@ -263,6 +263,18 @@ const ChatPage = () => {
   const handleSend = async (content?: string) => {
     const text = content || messageInput;
     if (!text.trim()) return;
+    // Buyers without a verified contact unlock may only send predefined keywords.
+    if (!chatUnlocked) {
+      const allowed = PREDEFINED_CHAT_KEYWORDS.map((k) => k.toLowerCase());
+      if (!allowed.includes(text.trim().toLowerCase())) {
+        toast({
+          title: "Chat locked",
+          description: "Pay ₹9 and wait for admin verification to send custom messages.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setSending(true);
     const ok = await sendMessage(text.trim());
     if (ok) setMessageInput("");
@@ -273,6 +285,14 @@ const ChatPage = () => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (!chatUnlocked) {
+      toast({
+        title: "Image upload locked",
+        description: "Available after admin verifies your ₹9 contact payment.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!file.type.startsWith("image/")) {
       toast({ title: "Invalid file", description: "Please pick an image.", variant: "destructive" });
       return;
