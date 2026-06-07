@@ -39,16 +39,30 @@ interface ReportRow {
   reporter?: { username: string; first_name: string } | null;
 }
 
+interface UnlockRow {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  amount: number;
+  verified: boolean;
+  created_at: string;
+  upi_reference: string | null;
+  listing_title?: string;
+  buyer_username?: string;
+}
+
 const AdminPage = () => {
   const { toast } = useToast();
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ReportRow[]>([]);
+  const [unlocks, setUnlocks] = useState<UnlockRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState({ users: 0, active: 0, pending: 0 });
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -107,7 +121,45 @@ const AdminPage = () => {
       setReports(reportsData.map((r: any) => ({ ...r, reporter: rpMap[r.reporter_id] || null, listing: lsMap[r.listing_id] || null })));
     }
 
+    // Contact unlocks (payment verification queue)
+    const { data: unlockData } = await supabase
+      .from("contact_unlocks")
+      .select("id, listing_id, buyer_id, amount, verified, created_at, upi_reference")
+      .order("created_at", { ascending: false });
+    if (unlockData) {
+      const lIds = [...new Set(unlockData.map((u: any) => u.listing_id))];
+      const bIds = [...new Set(unlockData.map((u: any) => u.buyer_id))];
+      const [{ data: ls }, { data: bs }] = await Promise.all([
+        lIds.length ? supabase.from("listings").select("id, title").in("id", lIds) : Promise.resolve({ data: [] as any }),
+        bIds.length ? supabase.from("profiles").select("user_id, username").in("user_id", bIds) : Promise.resolve({ data: [] as any }),
+      ]);
+      const lMap: Record<string, any> = {};
+      ls?.forEach((l: any) => { lMap[l.id] = l; });
+      const bMap: Record<string, any> = {};
+      bs?.forEach((b: any) => { bMap[b.user_id] = b; });
+      setUnlocks(unlockData.map((u: any) => ({
+        ...u,
+        listing_title: lMap[u.listing_id]?.title || "Unknown listing",
+        buyer_username: bMap[u.buyer_id]?.username || "user",
+      })));
+    }
+
     setLoading(false);
+  };
+
+  const handleVerifyUnlock = async (unlockId: string, verified: boolean) => {
+    setVerifyingId(unlockId);
+    const { error } = await supabase
+      .from("contact_unlocks")
+      .update({ verified, verified_at: verified ? new Date().toISOString() : null })
+      .eq("id", unlockId);
+    setVerifyingId(null);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: verified ? "Payment verified" : "Verification revoked" });
+    fetchAll();
   };
 
   useEffect(() => { fetchAll(); }, []);
@@ -177,6 +229,7 @@ const AdminPage = () => {
   const pendingListings = listings.filter((l) => l.status === "pending");
   const otherListings = listings.filter((l) => l.status !== "pending");
   const pendingReports = reports.filter((r) => r.status === "pending");
+  const pendingUnlocks = unlocks.filter((u) => !u.verified);
 
   const toggleId = (id: string) => {
     setSelectedIds((prev) => {
@@ -231,6 +284,9 @@ const AdminPage = () => {
               <TabsTrigger value="processed">Processed</TabsTrigger>
               <TabsTrigger value="reports">
                 Reports <Badge variant="destructive" className="ml-2">{pendingReports.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="payments">
+                Payments <Badge variant="pending" className="ml-2">{pendingUnlocks.length}</Badge>
               </TabsTrigger>
             </TabsList>
 
@@ -382,6 +438,61 @@ const AdminPage = () => {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="payments">
+              <Card className="p-6">
+                <div className="mb-4">
+                  <h2 className="font-bold text-lg">Contact unlock payments</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Verify ₹9 UPI payments to unlock the seller's contact details and full chat for the buyer.
+                  </p>
+                </div>
+                {unlocks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No payment records yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {unlocks.map((u) => (
+                      <div key={u.id} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg flex-wrap">
+                        <div className="flex-1 min-w-[200px]">
+                          <p className="font-medium truncate">{u.listing_title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Buyer: @{u.buyer_username} • ₹{u.amount} • {timeAgo(u.created_at)}
+                          </p>
+                          {u.upi_reference && (
+                            <p className="text-xs text-muted-foreground mt-0.5">Ref: {u.upi_reference}</p>
+                          )}
+                        </div>
+                        <Badge variant={u.verified ? "success" : "pending"}>
+                          {u.verified ? "Verified" : "Pending"}
+                        </Badge>
+                        {u.verified ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={verifyingId === u.id}
+                            onClick={() => handleVerifyUnlock(u.id, false)}
+                          >
+                            {verifyingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-1" />}
+                            Revoke
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            disabled={verifyingId === u.id}
+                            onClick={() => handleVerifyUnlock(u.id, true)}
+                          >
+                            {verifyingId === u.id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                            Verify payment
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </Card>

@@ -40,12 +40,16 @@ const ChatPage = () => {
   const [initializing, setInitializing] = useState(false);
   const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
   const [activeListingStatus, setActiveListingStatus] = useState<string | null>(null);
+  const [contactVerified, setContactVerified] = useState(false);
   const [dealActionLoading, setDealActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
   const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
+  // Buyers are restricted until an admin verifies their ₹9 contact unlock.
+  // Sellers can always chat freely in their own conversations.
+  const chatUnlocked = isSellerInActive || contactVerified;
 
   // Track the active listing's status (for freeze / complete actions)
   useEffect(() => {
@@ -64,6 +68,25 @@ const ChatPage = () => {
       });
     return () => { cancelled = true; };
   }, [activeConversation, messages.length]);
+
+  // Track whether this buyer's contact unlock has been admin-verified
+  useEffect(() => {
+    if (!activeConversation || !user || !isBuyerInActive) {
+      setContactVerified(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("contact_unlocks")
+      .select("verified")
+      .eq("listing_id", activeConversation.listing_id)
+      .eq("buyer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setContactVerified(!!(data as any)?.verified);
+      });
+    return () => { cancelled = true; };
+  }, [activeConversation, user, isBuyerInActive, messages.length]);
 
   // Pending freeze request in this conversation (if any)
   const pendingFreeze = (messages as any[]).find(
@@ -240,6 +263,18 @@ const ChatPage = () => {
   const handleSend = async (content?: string) => {
     const text = content || messageInput;
     if (!text.trim()) return;
+    // Buyers without a verified contact unlock may only send predefined keywords.
+    if (!chatUnlocked) {
+      const allowed = PREDEFINED_CHAT_KEYWORDS.map((k) => k.toLowerCase());
+      if (!allowed.includes(text.trim().toLowerCase())) {
+        toast({
+          title: "Chat locked",
+          description: "Pay ₹9 and wait for admin verification to send custom messages.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setSending(true);
     const ok = await sendMessage(text.trim());
     if (ok) setMessageInput("");
@@ -250,6 +285,14 @@ const ChatPage = () => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (!chatUnlocked) {
+      toast({
+        title: "Image upload locked",
+        description: "Available after admin verifies your ₹9 contact payment.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!file.type.startsWith("image/")) {
       toast({ title: "Invalid file", description: "Please pick an image.", variant: "destructive" });
       return;
@@ -364,12 +407,19 @@ const ChatPage = () => {
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <Link
-                    to={`/profile/${activeConversation.buyer_id === user.id ? activeConversation.seller_id : activeConversation.buyer_id}`}
-                    className="font-semibold text-sm truncate hover:text-primary block"
-                  >
-                    {activeConversation.other_user_name}
-                  </Link>
+                  {isBuyerInActive && !chatUnlocked ? (
+                    <span className="font-semibold text-sm truncate block flex items-center gap-1">
+                      Seller
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    </span>
+                  ) : (
+                    <Link
+                      to={`/profile/${activeConversation.buyer_id === user.id ? activeConversation.seller_id : activeConversation.buyer_id}`}
+                      className="font-semibold text-sm truncate hover:text-primary block"
+                    >
+                      {activeConversation.other_user_name}
+                    </Link>
+                  )}
                   <p className="text-xs text-muted-foreground truncate">{activeConversation.listing_title}</p>
                 </div>
               </div>
@@ -648,7 +698,15 @@ const ChatPage = () => {
 
               {/* Quick keywords + input */}
               <div className="border-t border-border p-3 bg-card">
-
+                {!chatUnlocked && isBuyerInActive && (
+                  <div className="mb-2 flex items-start gap-2 rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                    <Lock className="h-3.5 w-3.5 mt-0.5 text-accent shrink-0" />
+                    <span>
+                      Chat is limited to quick replies until an admin verifies your ₹9 contact payment.
+                      After that you can type freely and share images.
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {PREDEFINED_CHAT_KEYWORDS.map((keyword) => (
                     <Badge
@@ -672,11 +730,11 @@ const ChatPage = () => {
                   <Button
                     size="icon"
                     variant="outline"
-                    disabled={uploadingImage}
+                    disabled={uploadingImage || !chatUnlocked}
                     onClick={() => fileInputRef.current?.click()}
-                    title="Send image"
+                    title={chatUnlocked ? "Send image" : "Image sharing unlocks after admin verification"}
                   >
-                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : (chatUnlocked ? <ImageIcon className="h-4 w-4" /> : <Lock className="h-4 w-4" />)}
                   </Button>
                   <Input
                     value={messageInput}
@@ -684,8 +742,9 @@ const ChatPage = () => {
                       setMessageInput(e.target.value);
                       broadcastTyping();
                     }}
-                    placeholder="Type a message..."
+                    placeholder={chatUnlocked ? "Type a message..." : "Use a quick reply above — typing locked until verified"}
                     className="bg-secondary/50"
+                    disabled={!chatUnlocked}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -696,7 +755,7 @@ const ChatPage = () => {
                   <Button
                     size="icon"
                     variant="accent"
-                    disabled={!messageInput.trim() || sending}
+                    disabled={!messageInput.trim() || sending || !chatUnlocked}
                     onClick={() => handleSend()}
                   >
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

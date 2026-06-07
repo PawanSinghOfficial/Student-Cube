@@ -57,17 +57,24 @@ export function useChat() {
     const enriched: Conversation[] = await Promise.all(
       convos.map(async (c) => {
         const otherUserId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
-        const [listingRes, profileRes, lastMsgRes] = await Promise.all([
+        const [listingRes, profileRes, lastMsgRes, unlockRes] = await Promise.all([
           supabase.from("listings").select("title, image_urls").eq("id", c.listing_id).maybeSingle(),
           supabase.rpc("get_public_profile", { _user_id: otherUserId }).maybeSingle(),
           supabase.from("messages").select("content").eq("conversation_id", c.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+          // Only buyers need to check for a verified contact unlock to reveal seller name.
+          c.buyer_id === user.id
+            ? supabase.from("contact_unlocks").select("verified").eq("listing_id", c.listing_id).eq("buyer_id", user.id).maybeSingle()
+            : Promise.resolve({ data: { verified: true } as any }),
         ]);
         const lastRaw = lastMsgRes.data?.content || "";
+        const isBuyer = c.buyer_id === user.id;
+        const verified = !!(unlockRes as any)?.data?.verified;
+        const revealName = !isBuyer || verified;
         return {
           ...c,
           listing_title: listingRes.data?.title || "Unknown Listing",
           listing_image: listingRes.data?.image_urls?.[0] || "",
-          other_user_name: profileRes.data?.username || "User",
+          other_user_name: revealName ? (profileRes.data?.username || "User") : "Seller",
           last_message: lastRaw.startsWith(IMAGE_MSG_PREFIX) ? "📷 Photo" : lastRaw,
         };
       })

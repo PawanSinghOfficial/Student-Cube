@@ -65,6 +65,7 @@ const ProductDetail = () => {
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [contactUnlocked, setContactUnlocked] = useState(false);
+  const [unlockPending, setUnlockPending] = useState(false);
 
   const [product, setProduct] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,15 +154,20 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!id || !user) {
       setContactUnlocked(false);
+      setUnlockPending(false);
       return;
     }
     supabase
       .from("contact_unlocks")
-      .select("id")
+      .select("verified")
       .eq("listing_id", id)
       .eq("buyer_id", user.id)
       .maybeSingle()
-      .then(({ data }) => setContactUnlocked(!!data));
+      .then(({ data }) => {
+        const row = data as any;
+        setContactUnlocked(!!row?.verified);
+        setUnlockPending(!!row && !row.verified);
+      });
   }, [id, user]);
 
   if (loading) {
@@ -212,8 +218,12 @@ const ProductDetail = () => {
       toast({ title: "Could not record unlock", description: error.message, variant: "destructive" });
       return;
     }
-    setContactUnlocked(true);
-    toast({ title: "Contact Access Granted!", description: "You can now view seller contact details and chat freely." });
+    setContactUnlocked(false);
+    setUnlockPending(true);
+    toast({
+      title: "Payment recorded — awaiting admin verification",
+      description: "Contact details and full chat will unlock as soon as an admin verifies your ₹9 payment.",
+    });
   };
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -401,6 +411,10 @@ const ProductDetail = () => {
               ) : contactUnlocked ? (
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
+                </Button>
+              ) : unlockPending ? (
+                <Button variant="outline" size="xl" className="w-full" disabled>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />Awaiting admin verification
                 </Button>
               ) : (
                 <Button variant="accent" size="xl" className="w-full" onClick={handleContactSeller} disabled={isOwnListing}>

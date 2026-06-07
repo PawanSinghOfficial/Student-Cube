@@ -22,6 +22,8 @@ export type Database = {
           id: string
           listing_id: string
           upi_reference: string | null
+          verified: boolean
+          verified_at: string | null
         }
         Insert: {
           amount?: number
@@ -30,6 +32,8 @@ export type Database = {
           id?: string
           listing_id: string
           upi_reference?: string | null
+          verified?: boolean
+          verified_at?: string | null
         }
         Update: {
           amount?: number
@@ -38,6 +42,8 @@ export type Database = {
           id?: string
           listing_id?: string
           upi_reference?: string | null
+          verified?: boolean
+          verified_at?: string | null
         }
         Relationships: [
           {
