@@ -407,12 +407,19 @@ const ChatPage = () => {
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <Link
-                    to={`/profile/${activeConversation.buyer_id === user.id ? activeConversation.seller_id : activeConversation.buyer_id}`}
-                    className="font-semibold text-sm truncate hover:text-primary block"
-                  >
-                    {activeConversation.other_user_name}
-                  </Link>
+                  {isBuyerInActive && !chatUnlocked ? (
+                    <span className="font-semibold text-sm truncate block flex items-center gap-1">
+                      Seller
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    </span>
+                  ) : (
+                    <Link
+                      to={`/profile/${activeConversation.buyer_id === user.id ? activeConversation.seller_id : activeConversation.buyer_id}`}
+                      className="font-semibold text-sm truncate hover:text-primary block"
+                    >
+                      {activeConversation.other_user_name}
+                    </Link>
+                  )}
                   <p className="text-xs text-muted-foreground truncate">{activeConversation.listing_title}</p>
                 </div>
               </div>
