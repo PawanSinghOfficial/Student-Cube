@@ -13,7 +13,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
 
-interface ProfileData extends ProfileEditable { email: string; }
+interface ProfileData extends ProfileEditable {}
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
