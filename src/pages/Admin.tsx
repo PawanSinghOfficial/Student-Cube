@@ -285,6 +285,9 @@ const AdminPage = () => {
               <TabsTrigger value="reports">
                 Reports <Badge variant="destructive" className="ml-2">{pendingReports.length}</Badge>
               </TabsTrigger>
+              <TabsTrigger value="payments">
+                Payments <Badge variant="pending" className="ml-2">{pendingUnlocks.length}</Badge>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending">
