@@ -229,6 +229,7 @@ const AdminPage = () => {
   const pendingListings = listings.filter((l) => l.status === "pending");
   const otherListings = listings.filter((l) => l.status !== "pending");
   const pendingReports = reports.filter((r) => r.status === "pending");
+  const pendingUnlocks = unlocks.filter((u) => !u.verified);
 
   const toggleId = (id: string) => {
     setSelectedIds((prev) => {
