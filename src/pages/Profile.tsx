@@ -58,7 +58,7 @@ const ProfilePage = () => {
 
     const fetchProfile = async () => {
       const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
-        supabase.from("profiles").select("first_name, username, email, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("first_name, username, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
         supabase
           .from("listings")
           .select("id, title, price, status, image_urls", { count: "exact" })
