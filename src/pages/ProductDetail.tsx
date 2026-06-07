@@ -412,6 +412,10 @@ const ProductDetail = () => {
                 <Button variant="success" size="xl" className="w-full" disabled>
                   <CheckCircle className="h-5 w-5 mr-2" />Contact Unlocked
                 </Button>
+              ) : unlockPending ? (
+                <Button variant="outline" size="xl" className="w-full" disabled>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />Awaiting admin verification
+                </Button>
               ) : (
                 <Button variant="accent" size="xl" className="w-full" onClick={handleContactSeller} disabled={isOwnListing}>
                   <Phone className="h-5 w-5 mr-2" />Contact Seller - ₹9
