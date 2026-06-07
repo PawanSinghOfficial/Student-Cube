@@ -154,6 +154,7 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!id || !user) {
       setContactUnlocked(false);
+      setUnlockPending(false);
       return;
     }
     supabase
@@ -162,7 +163,11 @@ const ProductDetail = () => {
       .eq("listing_id", id)
       .eq("buyer_id", user.id)
       .maybeSingle()
-      .then(({ data }) => setContactUnlocked(!!(data as any)?.verified));
+      .then(({ data }) => {
+        const row = data as any;
+        setContactUnlocked(!!row?.verified);
+        setUnlockPending(!!row && !row.verified);
+      });
   }, [id, user]);
 
   if (loading) {
