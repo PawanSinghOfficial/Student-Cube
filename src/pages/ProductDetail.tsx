@@ -157,11 +157,11 @@ const ProductDetail = () => {
     }
     supabase
       .from("contact_unlocks")
-      .select("id")
+      .select("verified")
       .eq("listing_id", id)
       .eq("buyer_id", user.id)
       .maybeSingle()
-      .then(({ data }) => setContactUnlocked(!!data));
+      .then(({ data }) => setContactUnlocked(!!(data as any)?.verified));
   }, [id, user]);
 
   if (loading) {
