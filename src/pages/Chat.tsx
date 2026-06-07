@@ -698,7 +698,15 @@ const ChatPage = () => {
 
               {/* Quick keywords + input */}
               <div className="border-t border-border p-3 bg-card">
-
+                {!chatUnlocked && isBuyerInActive && (
+                  <div className="mb-2 flex items-start gap-2 rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                    <Lock className="h-3.5 w-3.5 mt-0.5 text-accent shrink-0" />
+                    <span>
+                      Chat is limited to quick replies until an admin verifies your ₹9 contact payment.
+                      After that you can type freely and share images.
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {PREDEFINED_CHAT_KEYWORDS.map((keyword) => (
                     <Badge
@@ -722,11 +730,11 @@ const ChatPage = () => {
                   <Button
                     size="icon"
                     variant="outline"
-                    disabled={uploadingImage}
+                    disabled={uploadingImage || !chatUnlocked}
                     onClick={() => fileInputRef.current?.click()}
-                    title="Send image"
+                    title={chatUnlocked ? "Send image" : "Image sharing unlocks after admin verification"}
                   >
-                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : (chatUnlocked ? <ImageIcon className="h-4 w-4" /> : <Lock className="h-4 w-4" />)}
                   </Button>
                   <Input
                     value={messageInput}
@@ -734,8 +742,9 @@ const ChatPage = () => {
                       setMessageInput(e.target.value);
                       broadcastTyping();
                     }}
-                    placeholder="Type a message..."
+                    placeholder={chatUnlocked ? "Type a message..." : "Use a quick reply above — typing locked until verified"}
                     className="bg-secondary/50"
+                    disabled={!chatUnlocked}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -746,7 +755,7 @@ const ChatPage = () => {
                   <Button
                     size="icon"
                     variant="accent"
-                    disabled={!messageInput.trim() || sending}
+                    disabled={!messageInput.trim() || sending || !chatUnlocked}
                     onClick={() => handleSend()}
                   >
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
