@@ -212,8 +212,11 @@ const ProductDetail = () => {
       toast({ title: "Could not record unlock", description: error.message, variant: "destructive" });
       return;
     }
-    setContactUnlocked(true);
-    toast({ title: "Contact Access Granted!", description: "You can now view seller contact details and chat freely." });
+    setContactUnlocked(false);
+    toast({
+      title: "Payment recorded — awaiting admin verification",
+      description: "Contact details and full chat will unlock as soon as an admin verifies your ₹9 payment.",
+    });
   };
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
