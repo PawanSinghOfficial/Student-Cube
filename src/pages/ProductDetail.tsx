@@ -219,6 +219,7 @@ const ProductDetail = () => {
       return;
     }
     setContactUnlocked(false);
+    setUnlockPending(true);
     toast({
       title: "Payment recorded — awaiting admin verification",
       description: "Contact details and full chat will unlock as soon as an admin verifies your ₹9 payment.",
