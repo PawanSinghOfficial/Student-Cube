@@ -121,7 +121,45 @@ const AdminPage = () => {
       setReports(reportsData.map((r: any) => ({ ...r, reporter: rpMap[r.reporter_id] || null, listing: lsMap[r.listing_id] || null })));
     }
 
+    // Contact unlocks (payment verification queue)
+    const { data: unlockData } = await supabase
+      .from("contact_unlocks")
+      .select("id, listing_id, buyer_id, amount, verified, created_at, upi_reference")
+      .order("created_at", { ascending: false });
+    if (unlockData) {
+      const lIds = [...new Set(unlockData.map((u: any) => u.listing_id))];
+      const bIds = [...new Set(unlockData.map((u: any) => u.buyer_id))];
+      const [{ data: ls }, { data: bs }] = await Promise.all([
+        lIds.length ? supabase.from("listings").select("id, title").in("id", lIds) : Promise.resolve({ data: [] as any }),
+        bIds.length ? supabase.from("profiles").select("user_id, username").in("user_id", bIds) : Promise.resolve({ data: [] as any }),
+      ]);
+      const lMap: Record<string, any> = {};
+      ls?.forEach((l: any) => { lMap[l.id] = l; });
+      const bMap: Record<string, any> = {};
+      bs?.forEach((b: any) => { bMap[b.user_id] = b; });
+      setUnlocks(unlockData.map((u: any) => ({
+        ...u,
+        listing_title: lMap[u.listing_id]?.title || "Unknown listing",
+        buyer_username: bMap[u.buyer_id]?.username || "user",
+      })));
+    }
+
     setLoading(false);
+  };
+
+  const handleVerifyUnlock = async (unlockId: string, verified: boolean) => {
+    setVerifyingId(unlockId);
+    const { error } = await supabase
+      .from("contact_unlocks")
+      .update({ verified, verified_at: verified ? new Date().toISOString() : null })
+      .eq("id", unlockId);
+    setVerifyingId(null);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: verified ? "Payment verified" : "Verification revoked" });
+    fetchAll();
   };
 
   useEffect(() => { fetchAll(); }, []);
