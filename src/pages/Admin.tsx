@@ -442,6 +442,61 @@ const AdminPage = () => {
                 )}
               </Card>
             </TabsContent>
+
+            <TabsContent value="payments">
+              <Card className="p-6">
+                <div className="mb-4">
+                  <h2 className="font-bold text-lg">Contact unlock payments</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Verify ₹9 UPI payments to unlock the seller's contact details and full chat for the buyer.
+                  </p>
+                </div>
+                {unlocks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No payment records yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {unlocks.map((u) => (
+                      <div key={u.id} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg flex-wrap">
+                        <div className="flex-1 min-w-[200px]">
+                          <p className="font-medium truncate">{u.listing_title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Buyer: @{u.buyer_username} • ₹{u.amount} • {timeAgo(u.created_at)}
+                          </p>
+                          {u.upi_reference && (
+                            <p className="text-xs text-muted-foreground mt-0.5">Ref: {u.upi_reference}</p>
+                          )}
+                        </div>
+                        <Badge variant={u.verified ? "success" : "pending"}>
+                          {u.verified ? "Verified" : "Pending"}
+                        </Badge>
+                        {u.verified ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={verifyingId === u.id}
+                            onClick={() => handleVerifyUnlock(u.id, false)}
+                          >
+                            {verifyingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-1" />}
+                            Revoke
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            disabled={verifyingId === u.id}
+                            onClick={() => handleVerifyUnlock(u.id, true)}
+                          >
+                            {verifyingId === u.id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                            Verify payment
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
           </Tabs>
         )}
 
