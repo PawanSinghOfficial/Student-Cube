@@ -13,7 +13,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
 
-interface ProfileData extends ProfileEditable { email: string; }
+interface ProfileData extends ProfileEditable {}
 
 const ProfilePage = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
@@ -58,7 +58,7 @@ const ProfilePage = () => {
 
     const fetchProfile = async () => {
       const [{ data: profileData }, { data: listingsData, count }] = await Promise.all([
-        supabase.from("profiles").select("first_name, username, email, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("first_name, username, college, bio, avatar_url").eq("user_id", user.id).maybeSingle(),
         supabase
           .from("listings")
           .select("id, title, price, status, image_urls", { count: "exact" })
@@ -127,7 +127,7 @@ const ProfilePage = () => {
                 </div>
                 <p className="text-muted-foreground">@{username}</p>
                 {!isGuest && (
-                  <p className="text-sm text-muted-foreground mt-1">{profile?.email || user?.email}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
                 )}
                 {profile?.college && (
                   <p className="text-sm text-muted-foreground mt-1">🎓 {profile.college}</p>

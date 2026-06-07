@@ -391,6 +391,13 @@ export type Database = {
           username: string
         }[]
       }
+      get_user_emails_for_admin: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       has_reward_record: { Args: never; Returns: boolean }
       has_role: {
         Args: {

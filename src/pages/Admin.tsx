@@ -59,13 +59,16 @@ const AdminPage = () => {
 
     if (listingsData) {
       const userIds = [...new Set(listingsData.map((l: any) => l.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, username, email, first_name")
-        .in("user_id", userIds);
+      const [{ data: profiles }, { data: emails }] = await Promise.all([
+        supabase.from("profiles").select("user_id, username, first_name").in("user_id", userIds),
+        supabase.rpc("get_user_emails_for_admin", { _user_ids: userIds as any }),
+      ]);
 
       const profileMap: Record<string, any> = {};
       profiles?.forEach((p: any) => { profileMap[p.user_id] = p; });
+      (emails as any[] | null)?.forEach((e: any) => {
+        profileMap[e.user_id] = { ...(profileMap[e.user_id] || {}), email: e.email };
+      });
 
       // Compute report counts
       const reportCount: Record<string, number> = {};
