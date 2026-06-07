@@ -140,6 +140,8 @@ export const MOCK_PRODUCTS: Product[] = [
 ];
 
 export const PREDEFINED_CHAT_KEYWORDS = [
+  "yes",
+  "no",
   "price?",
   "condition?",
   "meetup?",
