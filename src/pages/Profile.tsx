@@ -127,7 +127,7 @@ const ProfilePage = () => {
                 </div>
                 <p className="text-muted-foreground">@{username}</p>
                 {!isGuest && (
-                  <p className="text-sm text-muted-foreground mt-1">{profile?.email || user?.email}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
                 )}
                 {profile?.college && (
                   <p className="text-sm text-muted-foreground mt-1">🎓 {profile.college}</p>
