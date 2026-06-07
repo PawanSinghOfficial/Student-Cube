@@ -40,12 +40,16 @@ const ChatPage = () => {
   const [initializing, setInitializing] = useState(false);
   const [respondingOfferId, setRespondingOfferId] = useState<string | null>(null);
   const [activeListingStatus, setActiveListingStatus] = useState<string | null>(null);
+  const [contactVerified, setContactVerified] = useState(false);
   const [dealActionLoading, setDealActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
   const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
+  // Buyers are restricted until an admin verifies their ₹9 contact unlock.
+  // Sellers can always chat freely in their own conversations.
+  const chatUnlocked = isSellerInActive || contactVerified;
 
   // Track the active listing's status (for freeze / complete actions)
   useEffect(() => {
@@ -64,6 +68,25 @@ const ChatPage = () => {
       });
     return () => { cancelled = true; };
   }, [activeConversation, messages.length]);
+
+  // Track whether this buyer's contact unlock has been admin-verified
+  useEffect(() => {
+    if (!activeConversation || !user || !isBuyerInActive) {
+      setContactVerified(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("contact_unlocks")
+      .select("verified")
+      .eq("listing_id", activeConversation.listing_id)
+      .eq("buyer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setContactVerified(!!(data as any)?.verified);
+      });
+    return () => { cancelled = true; };
+  }, [activeConversation, user, isBuyerInActive, messages.length]);
 
   // Pending freeze request in this conversation (if any)
   const pendingFreeze = (messages as any[]).find(
