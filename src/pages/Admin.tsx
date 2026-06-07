@@ -39,16 +39,30 @@ interface ReportRow {
   reporter?: { username: string; first_name: string } | null;
 }
 
+interface UnlockRow {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  amount: number;
+  verified: boolean;
+  created_at: string;
+  upi_reference: string | null;
+  listing_title?: string;
+  buyer_username?: string;
+}
+
 const AdminPage = () => {
   const { toast } = useToast();
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ReportRow[]>([]);
+  const [unlocks, setUnlocks] = useState<UnlockRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState({ users: 0, active: 0, pending: 0 });
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const fetchAll = async () => {
     setLoading(true);
