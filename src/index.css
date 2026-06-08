@@ -220,3 +220,26 @@
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+
+/* Hero floating object animations */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50%      { transform: translateY(-18px) rotate(calc(var(--rot, 0deg) + 2deg)); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.6); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+@keyframes haloPulse {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 0.95; transform: translate(-50%, -50%) scale(1.08); }
+}
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+
+.animate-float-y { animation: floatY 6s ease-in-out infinite; }
+.animate-twinkle { animation: twinkle 2.8s ease-in-out infinite; }
+.animate-halo    { animation: haloPulse 4s ease-in-out infinite; }
+.animate-spin-slow { animation: spinSlow 24s linear infinite; }
+

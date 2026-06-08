@@ -8,7 +8,8 @@ import { CategoryCard } from "@/components/products/CategoryCard";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
-import heroIllustration from "@/assets/hero-illustration.png.asset.json";
+import logo from "@/assets/logo.png";
+import { Pencil, PenTool, ScrollText, Sparkles } from "lucide-react";
 
 import {
   ArrowRight,
@@ -97,53 +98,151 @@ const Index = () => {
         className="relative overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, #2a5d8f 0%, #3a8da0 55%, #4fc4b8 100%)",
+            "radial-gradient(120% 80% at 50% 40%, #58c4b8 0%, #3a8da0 38%, #2a5d8f 75%, #1e3f6b 100%)",
         }}
       >
+        {/* Subtle dotted noise pattern */}
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-25 pointer-events-none"
           style={{
             backgroundImage:
               "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
           }}
         />
 
-        <div className="relative container mx-auto px-4 pt-6 pb-12 lg:pb-16">
-          <div className="max-w-5xl mx-auto">
-            {/* Hero illustration (contains headline + tagline baked in) */}
-            <div className="rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/20">
-              <img
-                src={heroIllustration.url}
-                alt="IPU KA ADDA - Buy & Sell College Accessories Safely"
-                className="w-full h-auto block"
-                loading="eager"
+        {/* Soft color blobs */}
+        <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-cyan-300/30 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 -right-32 w-[26rem] h-[26rem] rounded-full bg-teal-200/25 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 left-1/3 w-[24rem] h-[24rem] rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
+
+        <div className="relative container mx-auto px-4 pt-12 pb-28 lg:pt-16 lg:pb-36">
+          {/* Top text block */}
+          <div className="max-w-3xl mx-auto text-center text-primary-foreground relative z-10 animate-[slideUp_0.7s_ease-out]">
+            <Badge
+              variant="secondary"
+              className="mb-6 text-sm px-4 py-1.5 bg-white/15 backdrop-blur-md text-primary-foreground border border-white/20"
+            >
+              <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
+              Trusted by 5000+ GGSIPU Students
+            </Badge>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight drop-shadow-[0_4px_18px_rgba(0,0,0,0.35)]">
+              Buy &amp; Sell College
+              <span className="block text-accent">Accessories Safely</span>
+            </h1>
+
+            <p className="text-base md:text-lg text-primary-foreground/85 mb-8 max-w-2xl mx-auto">
+              The trusted marketplace for all GGSIPU students. Find books, calculators,
+              drafters, and more at amazing prices. Join IPU KA ADDA today!
+            </p>
+          </div>
+
+          {/* Floating illustration stage */}
+          <div className="relative mx-auto mt-2 h-[420px] md:h-[480px] lg:h-[520px] max-w-6xl">
+            {/* Sparkles */}
+            {[
+              { top: "8%", left: "18%", delay: "0s", size: 18 },
+              { top: "22%", left: "78%", delay: "0.6s", size: 14 },
+              { top: "60%", left: "8%", delay: "1.1s", size: 20 },
+              { top: "70%", left: "88%", delay: "0.3s", size: 16 },
+              { top: "40%", left: "48%", delay: "1.4s", size: 12 },
+              { top: "85%", left: "40%", delay: "0.9s", size: 18 },
+            ].map((s, i) => (
+              <Sparkles
+                key={i}
+                className="absolute text-white/80 animate-twinkle pointer-events-none"
+                style={{
+                  top: s.top,
+                  left: s.left,
+                  width: s.size,
+                  height: s.size,
+                  animationDelay: s.delay,
+                }}
               />
-            </div>
+            ))}
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-              <Link to="/browse">
-                <Button variant="accent" size="xl" className="w-full sm:w-auto">
-                  Start Shopping
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/sell">
-                <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
-                  Sell Your Items
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((stat) => (
-                <div key={stat.label} className="text-center text-primary-foreground">
-                  <div className="text-3xl md:text-4xl font-bold">{stat.value}</div>
-                  <div className="text-sm opacity-80">{stat.label}</div>
+            {/* Floating objects */}
+            {[
+              { Icon: Calculator, top: "4%",  left: "6%",  rot: "-12deg", delay: "0s",   tint: "from-slate-100 to-slate-300", iconColor: "text-slate-700" },
+              { Icon: BookOpen,   top: "2%",  right: "6%", rot: "10deg",  delay: "0.4s", tint: "from-orange-300 to-rose-400", iconColor: "text-white" },
+              { Icon: Ruler,      top: "42%", left: "2%",  rot: "-18deg", delay: "0.8s", tint: "from-slate-50 to-slate-200",  iconColor: "text-slate-700" },
+              { Icon: PenTool,    top: "38%", right: "3%", rot: "14deg",  delay: "0.2s", tint: "from-sky-100 to-sky-300",     iconColor: "text-slate-700" },
+              { Icon: Pencil,     top: "76%", left: "10%", rot: "-8deg",  delay: "1.0s", tint: "from-amber-200 to-orange-400", iconColor: "text-white" },
+              { Icon: ScrollText, top: "74%", left: "46%", rot: "6deg",   delay: "0.6s", tint: "from-slate-50 to-slate-200",  iconColor: "text-slate-600" },
+              { Icon: Shirt,      top: "70%", right: "6%", rot: "10deg",  delay: "0.3s", tint: "from-white to-slate-100",     iconColor: "text-slate-700" },
+            ].map(({ Icon, iconColor, tint, delay, rot, ...pos }, i) => (
+              <div
+                key={i}
+                className="absolute animate-float-y"
+                style={{
+                  ...pos,
+                  // @ts-expect-error css var
+                  "--rot": rot,
+                  animationDelay: delay,
+                }}
+              >
+                <div
+                  className={`relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br ${tint} shadow-2xl ring-1 ring-white/40 flex items-center justify-center backdrop-blur-sm`}
+                  style={{ transform: `rotate(${rot})` }}
+                >
+                  <div className="absolute inset-0 rounded-2xl bg-white/10 blur-md -z-10" />
+                  <Icon className={`w-9 h-9 md:w-11 md:h-11 ${iconColor}`} strokeWidth={1.6} />
                 </div>
-              ))}
+              </div>
+            ))}
+
+            {/* Center logo with glowing halo */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              {/* Outer rotating glow ring */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 md:w-80 md:h-80 rounded-full animate-spin-slow"
+                style={{
+                  background:
+                    "conic-gradient(from 0deg, rgba(125,233,255,0) 0deg, rgba(125,233,255,0.55) 90deg, rgba(255,255,255,0) 180deg, rgba(125,233,255,0.55) 270deg, rgba(125,233,255,0) 360deg)",
+                  filter: "blur(18px)",
+                  opacity: 0.7,
+                }}
+              />
+              {/* Pulsing halo */}
+              <div className="absolute top-1/2 left-1/2 w-56 h-56 md:w-64 md:h-64 rounded-full animate-halo"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(180,255,245,0.85) 0%, rgba(125,233,255,0.45) 40%, rgba(125,233,255,0) 70%)",
+                }}
+              />
+              {/* Logo disc */}
+              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full bg-white/95 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/60 flex items-center justify-center">
+                <img
+                  src={logo}
+                  alt="IPU KA ADDA"
+                  className="w-24 h-24 md:w-28 md:h-28 object-contain"
+                />
+              </div>
             </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-center mt-2 animate-[slideUp_0.9s_ease-out]">
+            <Link to="/browse">
+              <Button variant="accent" size="xl" className="w-full sm:w-auto shadow-2xl">
+                Start Shopping
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/sell">
+              <Button variant="heroOutline" size="xl" className="w-full sm:w-auto backdrop-blur-md bg-white/10">
+                Sell Your Items
+              </Button>
+            </Link>
+          </div>
+
+          {/* Stats */}
+          <div className="relative z-10 mt-14 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center text-primary-foreground">
+                <div className="text-3xl md:text-4xl font-bold drop-shadow">{stat.value}</div>
+                <div className="text-sm opacity-80">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
