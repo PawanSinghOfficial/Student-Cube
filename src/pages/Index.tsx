@@ -8,7 +8,8 @@ import { CategoryCard } from "@/components/products/CategoryCard";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
-import heroIllustration from "@/assets/hero-illustration.png.asset.json";
+import logo from "@/assets/logo.png";
+import { Pencil, PenTool, ScrollText, Sparkles } from "lucide-react";
 
 import {
   ArrowRight,
