@@ -9,7 +9,14 @@ import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSecti
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
 import logo from "@/assets/logo.png";
-import { Pencil, PenTool, ScrollText, Sparkles } from "lucide-react";
+import heroCalculator from "@/assets/hero-calculator.png";
+import heroBook from "@/assets/hero-book.png";
+import heroDrafter from "@/assets/hero-drafter.png";
+import heroTsquare from "@/assets/hero-tsquare.png";
+import heroPouch from "@/assets/hero-pouch.png";
+import heroBlueprint from "@/assets/hero-blueprint.png";
+import heroLabcoat from "@/assets/hero-labcoat.png";
+import { Sparkles } from "lucide-react";
 
 import {
   ArrowRight,
@@ -138,15 +145,15 @@ const Index = () => {
           </div>
 
           {/* Floating illustration stage */}
-          <div className="relative mx-auto mt-2 h-[420px] md:h-[480px] lg:h-[520px] max-w-6xl">
+          <div className="relative mx-auto mt-2 h-[480px] md:h-[560px] lg:h-[620px] max-w-6xl">
             {/* Sparkles */}
             {[
-              { top: "8%", left: "18%", delay: "0s", size: 18 },
-              { top: "22%", left: "78%", delay: "0.6s", size: 14 },
-              { top: "60%", left: "8%", delay: "1.1s", size: 20 },
-              { top: "70%", left: "88%", delay: "0.3s", size: 16 },
-              { top: "40%", left: "48%", delay: "1.4s", size: 12 },
-              { top: "85%", left: "40%", delay: "0.9s", size: 18 },
+              { top: "6%", left: "30%", delay: "0s", size: 18 },
+              { top: "18%", left: "70%", delay: "0.6s", size: 14 },
+              { top: "52%", left: "32%", delay: "1.1s", size: 16 },
+              { top: "55%", left: "66%", delay: "0.3s", size: 14 },
+              { top: "82%", left: "38%", delay: "0.9s", size: 18 },
+              { top: "78%", left: "60%", delay: "1.4s", size: 12 },
             ].map((s, i) => (
               <Sparkles
                 key={i}
@@ -161,38 +168,39 @@ const Index = () => {
               />
             ))}
 
-            {/* Floating objects */}
+            {/* Floating objects — real illustrated items, kept clear of the center logo */}
             {[
-              { Icon: Calculator, top: "4%",  left: "6%",  rot: "-12deg", delay: "0s",   tint: "from-slate-100 to-slate-300", iconColor: "text-slate-700" },
-              { Icon: BookOpen,   top: "2%",  right: "6%", rot: "10deg",  delay: "0.4s", tint: "from-orange-300 to-rose-400", iconColor: "text-white" },
-              { Icon: Ruler,      top: "42%", left: "2%",  rot: "-18deg", delay: "0.8s", tint: "from-slate-50 to-slate-200",  iconColor: "text-slate-700" },
-              { Icon: PenTool,    top: "38%", right: "3%", rot: "14deg",  delay: "0.2s", tint: "from-sky-100 to-sky-300",     iconColor: "text-slate-700" },
-              { Icon: Pencil,     top: "76%", left: "10%", rot: "-8deg",  delay: "1.0s", tint: "from-amber-200 to-orange-400", iconColor: "text-white" },
-              { Icon: ScrollText, top: "74%", left: "46%", rot: "6deg",   delay: "0.6s", tint: "from-slate-50 to-slate-200",  iconColor: "text-slate-600" },
-              { Icon: Shirt,      top: "70%", right: "6%", rot: "10deg",  delay: "0.3s", tint: "from-white to-slate-100",     iconColor: "text-slate-700" },
-            ].map(({ Icon, iconColor, tint, delay, rot, ...pos }, i) => (
+              { src: heroCalculator, alt: "Calculator", top: "0%",   left: "0%",     rot: "-10deg", delay: "0s",   size: "w-28 h-28 md:w-36 md:h-36 lg:w-40 lg:h-40" },
+              { src: heroBook,       alt: "Textbook",   top: "0%",   right: "0%",    rot: "12deg",  delay: "0.4s", size: "w-28 h-28 md:w-36 md:h-36 lg:w-40 lg:h-40" },
+              { src: heroDrafter,    alt: "Drafter",    top: "38%",  left: "-2%",    rot: "-8deg",  delay: "0.8s", size: "w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48" },
+              { src: heroTsquare,    alt: "T-square",   top: "40%",  right: "-2%",   rot: "14deg",  delay: "0.2s", size: "w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44" },
+              { src: heroPouch,      alt: "Pencil pouch", bottom: "0%", left: "2%",  rot: "-6deg",  delay: "1.0s", size: "w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48" },
+              { src: heroBlueprint,  alt: "Blueprint",  bottom: "2%", left: "50%",   rot: "4deg",   delay: "0.6s", size: "w-28 h-28 md:w-36 md:h-36 lg:w-40 lg:h-40", translateX: "-50%" },
+              { src: heroLabcoat,    alt: "Lab coat",   bottom: "0%", right: "2%",   rot: "8deg",   delay: "0.3s", size: "w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44" },
+            ].map(({ src, alt, rot, delay, size, translateX, ...pos }, i) => (
               <div
                 key={i}
-                className="absolute animate-float-y"
+                className="absolute animate-float-y pointer-events-none"
                 style={{
                   ...pos,
                   // @ts-expect-error css var
                   "--rot": rot,
                   animationDelay: delay,
+                  transform: translateX ? `translateX(${translateX})` : undefined,
                 }}
               >
-                <div
-                  className={`relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br ${tint} shadow-2xl ring-1 ring-white/40 flex items-center justify-center backdrop-blur-sm`}
+                <img
+                  src={src}
+                  alt={alt}
+                  loading="lazy"
+                  className={`${size} object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.35)]`}
                   style={{ transform: `rotate(${rot})` }}
-                >
-                  <div className="absolute inset-0 rounded-2xl bg-white/10 blur-md -z-10" />
-                  <Icon className={`w-9 h-9 md:w-11 md:h-11 ${iconColor}`} strokeWidth={1.6} />
-                </div>
+                />
               </div>
             ))}
 
             {/* Center logo with glowing halo */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               {/* Outer rotating glow ring */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 md:w-80 md:h-80 rounded-full animate-spin-slow"
                 style={{
