@@ -209,11 +209,18 @@ const ProductDetail = () => {
   };
 
   const handleContactSeller = () => setShowPaymentDialog(true);
-  const handlePaymentComplete = async () => {
+  const handlePaymentComplete = async (data: { screenshotUrl: string; promoCode: string | null }) => {
     if (!user || !product) return;
     const { error } = await supabase
       .from("contact_unlocks")
-      .insert({ listing_id: product.id, buyer_id: user.id, amount: 9 });
+      .insert({
+        listing_id: product.id,
+        buyer_id: user.id,
+        amount: 9,
+        payment_screenshot_url: data.screenshotUrl,
+        promo_code: data.promoCode,
+        buyer_email: user.email ?? null,
+      } as any);
     if (error && !error.message.toLowerCase().includes("duplicate")) {
       toast({ title: "Could not record unlock", description: error.message, variant: "destructive" });
       return;
