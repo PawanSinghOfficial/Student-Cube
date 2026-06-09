@@ -17,30 +17,39 @@ export type Database = {
       contact_unlocks: {
         Row: {
           amount: number
+          buyer_email: string | null
           buyer_id: string
           created_at: string
           id: string
           listing_id: string
+          payment_screenshot_url: string | null
+          promo_code: string | null
           upi_reference: string | null
           verified: boolean
           verified_at: string | null
         }
         Insert: {
           amount?: number
+          buyer_email?: string | null
           buyer_id: string
           created_at?: string
           id?: string
           listing_id: string
+          payment_screenshot_url?: string | null
+          promo_code?: string | null
           upi_reference?: string | null
           verified?: boolean
           verified_at?: string | null
         }
         Update: {
           amount?: number
+          buyer_email?: string | null
           buyer_id?: string
           created_at?: string
           id?: string
           listing_id?: string
+          payment_screenshot_url?: string | null
+          promo_code?: string | null
           upi_reference?: string | null
           verified?: boolean
           verified_at?: string | null
