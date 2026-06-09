@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,20 +7,22 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, ShieldCheck, Clock, Upload, Loader2, Tag } from "lucide-react";
+import { CheckCircle, ShieldCheck, Clock, Upload, Loader2, Tag, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
-import paymentQr from "@/assets/payment-qr.png.asset.json";
 
 interface UpiPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   amount: number;
   purpose: string;
-  onPaymentComplete?: (data: { screenshotUrl: string; promoCode: string | null }) => void;
+  onPaymentComplete?: (data: { screenshotUrl: string; promoCode: string | null; email: string }) => void;
 }
+
+const UPI_ID = "pawansingh.24@ibl";
+const PAYEE_NAME = "IPU KA ADDA";
 
 export const UpiPaymentDialog = ({
   open,
@@ -34,9 +36,27 @@ export const UpiPaymentDialog = ({
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fill email from logged-in user
+  useEffect(() => {
+    if (user?.email) setEmail(user.email);
+  }, [user, open]);
+
+  // Dynamic UPI QR with ₹ amount baked in
+  const qrUrl = useMemo(() => {
+    const upiString =
+      `upi://pay?pa=${encodeURIComponent(UPI_ID)}` +
+      `&pn=${encodeURIComponent(PAYEE_NAME)}` +
+      `&am=${encodeURIComponent(amount.toFixed(2))}` +
+      `&cu=INR` +
+      `&tn=${encodeURIComponent(purpose)}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=0&data=${encodeURIComponent(upiString)}`;
+  }, [amount, purpose]);
 
   const handleFile = (f: File | null) => {
     if (!f) return;
@@ -50,6 +70,16 @@ export const UpiPaymentDialog = ({
     }
     setScreenshotFile(f);
     setScreenshotPreview(URL.createObjectURL(f));
+  };
+
+  const handleApplyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (!code) {
+      toast({ title: "Enter a promo code", variant: "destructive" });
+      return;
+    }
+    setPromoApplied(code);
+    toast({ title: "Promo code applied", description: `${code} will be verified by admin.` });
   };
 
   const handleSubmit = async () => {
@@ -71,13 +101,18 @@ export const UpiPaymentDialog = ({
       if (upErr) throw upErr;
       setPaymentConfirmed(true);
       toast({ title: "Payment Submitted!", description: "We'll verify your payment shortly." });
-      onPaymentComplete?.({ screenshotUrl: path, promoCode: promoCode.trim() || null });
+      onPaymentComplete?.({
+        screenshotUrl: path,
+        promoCode: promoApplied || promoCode.trim().toUpperCase() || null,
+        email: email.trim() || user.email || "",
+      });
       setTimeout(() => {
         onOpenChange(false);
         setPaymentConfirmed(false);
         setScreenshotFile(null);
         setScreenshotPreview(null);
         setPromoCode("");
+        setPromoApplied(null);
       }, 1800);
     } catch (e: any) {
       toast({ title: "Upload failed", description: e.message, variant: "destructive" });
@@ -88,7 +123,7 @@ export const UpiPaymentDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 border-0 overflow-hidden bg-[#0b0512] text-white max-h-[92vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl p-0 border-0 overflow-hidden bg-[#0b0512] text-white max-h-[92vh] overflow-y-auto">
         <DialogTitle className="sr-only">Secure Checkout</DialogTitle>
         <DialogDescription className="sr-only">{purpose}</DialogDescription>
 
@@ -117,27 +152,27 @@ export const UpiPaymentDialog = ({
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 p-5 md:p-6 pt-3">
+          <div className="grid md:grid-cols-2 gap-4 p-5 md:p-6 pt-3">
             {/* LEFT — Scan & Pay */}
-            <div className="rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-sm p-6 md:p-7 flex flex-col items-center">
+            <div className="rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-sm p-5 md:p-6 flex flex-col items-center">
               <h3 className="font-serif text-2xl md:text-3xl text-white">Scan &amp; Pay</h3>
-              <p className="text-sm text-white/50 mt-1 text-center max-w-[240px]">
-                Use any UPI app to scan the code below
+              <p className="text-xs text-white/50 mt-1 text-center max-w-[240px]">
+                Use any UPI app to scan and pay INR {amount.toFixed(2)}
               </p>
 
-              <div className="mt-6 p-4 bg-white rounded-2xl shadow-2xl">
+              <div className="mt-4 p-3 bg-white rounded-2xl shadow-2xl">
                 <img
-                  src={paymentQr.url}
-                  alt="UPI Payment QR"
+                  src={qrUrl}
+                  alt={`UPI Payment QR for INR ${amount}`}
                   className="w-[220px] h-[220px] object-contain"
                 />
               </div>
 
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <div className="text-[10px] tracking-[0.22em] text-white/40 uppercase">
                   Total Amount
                 </div>
-                <div className="mt-2 font-serif text-3xl md:text-4xl text-white">
+                <div className="mt-1 font-serif text-3xl md:text-4xl text-white">
                   INR {amount.toFixed(2)}
                 </div>
                 <div className="mt-1 text-[10px] tracking-[0.22em] text-emerald-400 uppercase">
@@ -148,44 +183,60 @@ export const UpiPaymentDialog = ({
 
             {/* RIGHT — Checkout */}
             <div className="flex flex-col">
-              <h3 className="font-serif text-3xl md:text-4xl text-white">Checkout</h3>
-              <p className="text-sm text-white/55 mt-1">
+              <h3 className="font-serif text-2xl md:text-3xl text-white">Checkout</h3>
+              <p className="text-xs text-white/55 mt-1">
                 Complete your payment to unlock contact access.
               </p>
 
-              <div className="mt-4 rounded-2xl bg-white/[0.03] border border-white/10 p-5 md:p-6 space-y-5">
-                {/* Email (read-only) */}
+              <div className="mt-3 rounded-2xl bg-white/[0.03] border border-white/10 p-4 md:p-5 space-y-4">
+                {/* Email (auto-filled) */}
                 <div>
                   <div className="text-[10px] tracking-[0.2em] text-white/40 uppercase mb-2">Email</div>
-                  <div className="flex items-center gap-3 rounded-xl bg-black/40 border border-white/5 px-4 py-3">
-                    <span className="text-sm text-white/80 truncate">{user?.email || "—"}</span>
+                  <div className="flex items-center gap-2 rounded-xl bg-black/40 border border-white/5 px-3 py-2">
+                    <Mail className="h-4 w-4 text-white/40 shrink-0" />
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="border-0 bg-transparent text-white placeholder:text-white/30 focus-visible:ring-0 px-1 h-8"
+                    />
                   </div>
                 </div>
 
-                {/* Amount */}
-                <div>
-                  <div className="text-[10px] tracking-[0.2em] text-white/40 uppercase mb-2">Amount</div>
-                  <div className="flex items-center justify-between rounded-xl bg-black/40 border border-white/5 px-4 py-3">
-                    <span className="text-sm text-white/60">Total payable</span>
-                    <span className="font-serif text-xl text-white">INR {amount.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Promo code (optional) */}
+                {/* Promo code (optional) with Apply */}
                 <div>
                   <div className="text-[10px] tracking-[0.2em] text-white/40 uppercase mb-2">
                     Promo Code <span className="text-white/30 normal-case tracking-normal">(optional)</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-xl bg-black/40 border border-white/5 px-3 py-2">
-                    <Tag className="h-4 w-4 text-white/40 shrink-0" />
-                    <Input
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                      placeholder="Enter promo code"
-                      maxLength={32}
-                      className="border-0 bg-transparent text-white placeholder:text-white/30 focus-visible:ring-0 px-1 h-8"
-                    />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 rounded-xl bg-black/40 border border-white/5 px-3 py-2 flex-1">
+                      <Tag className="h-4 w-4 text-white/40 shrink-0" />
+                      <Input
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value.toUpperCase());
+                          setPromoApplied(null);
+                        }}
+                        placeholder="Enter promo code"
+                        maxLength={32}
+                        className="border-0 bg-transparent text-white placeholder:text-white/30 focus-visible:ring-0 px-1 h-8"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      variant="secondary"
+                      className="h-11 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                    >
+                      {promoApplied ? "Applied" : "Apply"}
+                    </Button>
                   </div>
+                  {promoApplied && (
+                    <p className="text-[11px] text-emerald-300 mt-1.5">
+                      Code <span className="font-semibold">{promoApplied}</span> will be verified by admin.
+                    </p>
+                  )}
                 </div>
 
                 {/* Screenshot upload */}
@@ -203,11 +254,11 @@ export const UpiPaymentDialog = ({
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
-                    className="w-full rounded-xl bg-black/40 border border-dashed border-white/15 hover:border-white/30 transition-colors px-4 py-6 flex flex-col items-center justify-center gap-2"
+                    className="w-full rounded-xl bg-black/40 border border-dashed border-white/15 hover:border-white/30 transition-colors px-4 py-5 flex flex-col items-center justify-center gap-2"
                   >
                     {screenshotPreview ? (
                       <>
-                        <img src={screenshotPreview} alt="Preview" className="max-h-32 rounded-md" />
+                        <img src={screenshotPreview} alt="Preview" className="max-h-28 rounded-md" />
                         <span className="text-xs text-emerald-300">Click to change screenshot</span>
                       </>
                     ) : (
@@ -235,14 +286,14 @@ export const UpiPaymentDialog = ({
                     {submitting ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</>
                     ) : (
-                      "Complete Secure Payment"
+                      `Complete Secure Payment · INR ${amount.toFixed(2)}`
                     )}
                   </Button>
                 )}
               </div>
 
               {/* Trust */}
-              <div className="mt-4 rounded-2xl bg-white/[0.03] border border-white/10 p-4 space-y-3">
+              <div className="mt-3 rounded-2xl bg-white/[0.03] border border-white/10 p-3 space-y-2">
                 <div className="flex items-start gap-3">
                   <div className="h-8 w-8 rounded-lg bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center shrink-0">
                     <ShieldCheck className="h-4 w-4 text-emerald-300" />
