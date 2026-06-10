@@ -206,6 +206,13 @@ const ProfilePage = () => {
             )}
           </Card>
 
+          {!isGuest && user && (
+            <div id="referral-section">
+              <ReferralSection userId={user.id} />
+            </div>
+          )}
+
+
           {!isGuest && (
             <Card className="p-6 mt-6">
               <h2 className="font-bold text-lg mb-4">My Listings</h2>
