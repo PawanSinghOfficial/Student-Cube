@@ -34,7 +34,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <WishlistProvider>
-              <SpinWheelDialog />
+              
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/browse" element={<Browse />} />
