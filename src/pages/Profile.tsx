@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
+import { ReferralSection } from "@/components/profile/ReferralSection";
 
 interface ProfileData extends ProfileEditable {}
 
@@ -191,7 +192,7 @@ const ProfilePage = () => {
               <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => navigate("/sell")}>
                 <Tag className="h-5 w-5" /> My Listings
               </Button>
-              <Button variant="outline" className="justify-start gap-3 h-12">
+              <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => document.getElementById("referral-section")?.scrollIntoView({ behavior: "smooth" })}>
                 <Gift className="h-5 w-5" /> Referral Code
               </Button>
               <Button variant="outline" className="justify-start gap-3 h-12">
@@ -204,6 +205,13 @@ const ProfilePage = () => {
               </Button>
             )}
           </Card>
+
+          {!isGuest && user && (
+            <div id="referral-section">
+              <ReferralSection userId={user.id} />
+            </div>
+          )}
+
 
           {!isGuest && (
             <Card className="p-6 mt-6">

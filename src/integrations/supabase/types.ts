@@ -242,6 +242,8 @@ export type Database = {
           email: string
           first_name: string
           id: string
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
           user_id: string
           username: string
@@ -251,6 +253,8 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id: string
           username?: string
@@ -260,6 +264,8 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -397,6 +403,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       get_public_profile: {
         Args: { _user_id: string }
         Returns: {
