@@ -72,14 +72,22 @@ export const UpiPaymentDialog = ({
     setScreenshotPreview(URL.createObjectURL(f));
   };
 
+  // Valid promo codes — add here in future
+  const VALID_PROMO_CODES: string[] = [];
+
   const handleApplyPromo = () => {
     const code = promoCode.trim().toUpperCase();
     if (!code) {
       toast({ title: "Enter a promo code", variant: "destructive" });
       return;
     }
+    if (!VALID_PROMO_CODES.includes(code)) {
+      setPromoApplied(null);
+      toast({ title: "hey buddy ye to invalid hai 😝", variant: "destructive" });
+      return;
+    }
     setPromoApplied(code);
-    toast({ title: "Promo code applied", description: `${code} will be verified by admin.` });
+    toast({ title: "Promo code applied", description: `${code} has been applied successfully.` });
   };
 
   const handleSubmit = async () => {
