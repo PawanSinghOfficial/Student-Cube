@@ -4,7 +4,7 @@ import { LucideIcon } from "lucide-react";
 interface CategoryCardProps {
   name: string;
   icon: LucideIcon;
-  count: number;
+  count?: number;
   color: string;
   href: string;
 }
@@ -20,8 +20,11 @@ export function CategoryCard({ name, icon: Icon, count, color, href }: CategoryC
       >
         <Icon className="w-8 h-8 text-primary-foreground" />
       </div>
-      <h3 className="font-semibold text-foreground text-center mb-1">{name}</h3>
-      <p className="text-sm text-muted-foreground">{count} items</p>
+      <h3 className="font-semibold text-foreground text-center">{name}</h3>
+      {typeof count === "number" && (
+        <p className="text-sm text-muted-foreground mt-1">{count} items</p>
+      )}
     </Link>
   );
 }
+
