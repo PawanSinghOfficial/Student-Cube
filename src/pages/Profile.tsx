@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { EditProfileDialog, ProfileEditable } from "@/components/profile/EditProfileDialog";
+import { ReferralSection } from "@/components/profile/ReferralSection";
 
 interface ProfileData extends ProfileEditable {}
 
