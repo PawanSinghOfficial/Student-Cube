@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
-import { SpinWheelDialog } from "@/components/rewards/SpinWheelDialog";
+
 import Index from "./pages/Index";
 import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
