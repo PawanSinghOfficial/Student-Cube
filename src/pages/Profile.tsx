@@ -192,7 +192,7 @@ const ProfilePage = () => {
               <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => navigate("/sell")}>
                 <Tag className="h-5 w-5" /> My Listings
               </Button>
-              <Button variant="outline" className="justify-start gap-3 h-12">
+              <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => document.getElementById("referral-section")?.scrollIntoView({ behavior: "smooth" })}>
                 <Gift className="h-5 w-5" /> Referral Code
               </Button>
               <Button variant="outline" className="justify-start gap-3 h-12">
