@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ProductCard } from "@/components/products/ProductCard";
+
 import { CategoryCard } from "@/components/products/CategoryCard";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
@@ -34,7 +34,7 @@ import {
   BadgeCheck,
   ChevronRight,
   Star,
-  TrendingUp,
+  
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
