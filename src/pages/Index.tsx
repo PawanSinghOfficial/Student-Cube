@@ -333,9 +333,8 @@ const Index = () => {
                     Your Safety is Our Priority
                   </h2>
                   <p className="text-muted-foreground mb-6">
-                    We verify all sellers with video proof, use escrow-style contact access, 
-                    and provide warning systems to protect you from scams. 
-                    <strong className="text-accent"> Currently 80% of transactions complete safely!</strong>
+                    We verify all sellers with video proof, use escrow-style contact access,
+                    and provide warning systems to protect you from scams.
                   </p>
                   <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                     <Badge variant="verified" className="text-sm py-1.5">
