@@ -3,11 +3,11 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ProductCard } from "@/components/products/ProductCard";
+
 import { CategoryCard } from "@/components/products/CategoryCard";
 import { RecentlyViewedSection } from "@/components/products/RecentlyViewedSection";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
-import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
+import { CATEGORIES } from "@/data/mockData";
 import logo from "@/assets/logo.png";
 import heroCalculator from "@/assets/hero-calculator.png";
 import heroBook from "@/assets/hero-book.png";
@@ -34,7 +34,7 @@ import {
   BadgeCheck,
   ChevronRight,
   Star,
-  TrendingUp,
+  
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
@@ -59,12 +59,6 @@ const categoryColors = [
   "bg-slate-500",
 ];
 
-const stats = [
-  { value: "5000+", label: "Active Users" },
-  { value: "10K+", label: "Items Sold" },
-  { value: "50+", label: "GGSIPU Colleges" },
-  { value: "₹10L+", label: "Saved by Students" },
-];
 
 const howItWorks = [
   {
@@ -95,8 +89,6 @@ const howItWorks = [
 
 const Index = () => {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
-  const featuredProducts = MOCK_PRODUCTS.filter((p) => p.isFeatured);
-  const recentProducts = MOCK_PRODUCTS.slice(0, 4);
 
   return (
     <Layout>
@@ -130,22 +122,22 @@ const Index = () => {
               className="mb-6 text-sm px-4 py-1.5 bg-white/15 backdrop-blur-md text-primary-foreground border border-white/20"
             >
               <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
-              Trusted by 5000+ GGSIPU Students
+              The GGSIPU Student Marketplace
             </Badge>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight drop-shadow-[0_4px_18px_rgba(0,0,0,0.35)]">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight drop-shadow-[0_4px_18px_rgba(0,0,0,0.35)]">
               Buy &amp; Sell College
               <span className="block text-accent">Accessories Safely</span>
             </h1>
 
-            <p className="text-base md:text-lg text-primary-foreground/85 mb-8 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-primary-foreground/85 max-w-2xl mx-auto">
               The trusted marketplace for all GGSIPU students. Find books, calculators,
               drafters, and more at amazing prices. Join IPU KA ADDA today!
             </p>
           </div>
 
           {/* Floating illustration stage */}
-          <div className="relative mx-auto mt-2 h-[480px] md:h-[560px] lg:h-[620px] max-w-6xl">
+          <div className="relative mx-auto mt-12 md:mt-16 lg:mt-20 h-[480px] md:h-[560px] lg:h-[620px] max-w-6xl">
             {/* Sparkles */}
             {[
               { top: "6%", left: "30%", delay: "0s", size: 18 },
@@ -229,7 +221,7 @@ const Index = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-center mt-2 animate-[slideUp_0.9s_ease-out]">
+          <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-center mt-10 md:mt-12 animate-[slideUp_0.9s_ease-out]">
             <Link to="/browse">
               <Button variant="accent" size="xl" className="w-full sm:w-auto shadow-2xl">
                 Start Shopping
@@ -241,16 +233,6 @@ const Index = () => {
                 Sell Your Items
               </Button>
             </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="relative z-10 mt-14 grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center text-primary-foreground">
-                <div className="text-3xl md:text-4xl font-bold drop-shadow">{stat.value}</div>
-                <div className="text-sm opacity-80">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -286,7 +268,6 @@ const Index = () => {
                   key={category.id}
                   name={category.name}
                   icon={Icon}
-                  count={Math.floor(Math.random() * 200) + 50}
                   color={categoryColors[index % categoryColors.length]}
                   href={`/browse?category=${category.id}`}
                 />
@@ -296,39 +277,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <Badge variant="accent" className="mb-2">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                Hot Deals
-              </Badge>
-              <h2 className="text-3xl font-bold text-foreground">Featured Products</h2>
-              <p className="text-muted-foreground mt-2">Hand-picked deals you don't want to miss</p>
-            </div>
-            <Link to="/browse?featured=true" className="hidden md:flex items-center text-primary font-medium hover:underline">
-              View All <ChevronRight className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How It Works */}
-      <section id="how-it-works" className="py-16 lg:py-24">
+      <section id="how-it-works" className="py-16 lg:py-24 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <Badge variant="default" className="mb-4">Simple Process</Badge>
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground">How It Works</h2>
             <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-              Join thousands of GGSIPU students buying and selling safely on IPU KA ADDA
+              Join fellow GGSIPU students buying and selling safely on IPU KA ADDA
             </p>
           </div>
 
@@ -337,50 +293,17 @@ const Index = () => {
               const Icon = item.icon;
               return (
                 <Card key={item.step} variant="elevated" className="p-6 text-center relative">
-                  {/* Step number */}
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full gradient-primary text-primary-foreground font-bold flex items-center justify-center shadow-lg">
                     {item.step}
                   </div>
-                  
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mt-4 mb-4">
                     <Icon className="w-8 h-8 text-primary" />
                   </div>
-                  
                   <h3 className="text-lg font-bold text-foreground mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                 </Card>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Recent Listings */}
-      <section className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Recent Listings</h2>
-              <p className="text-muted-foreground mt-2">Fresh items added by fellow students</p>
-            </div>
-            <Link to="/browse" className="hidden md:flex items-center text-primary font-medium hover:underline">
-              Browse All <ChevronRight className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recentProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link to="/browse">
-              <Button variant="outline" size="lg">
-                View All Products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
@@ -410,9 +333,8 @@ const Index = () => {
                     Your Safety is Our Priority
                   </h2>
                   <p className="text-muted-foreground mb-6">
-                    We verify all sellers with video proof, use escrow-style contact access, 
-                    and provide warning systems to protect you from scams. 
-                    <strong className="text-accent"> Currently 80% of transactions complete safely!</strong>
+                    We verify all sellers with video proof, use escrow-style contact access,
+                    and provide warning systems to protect you from scams.
                   </p>
                   <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                     <Badge variant="verified" className="text-sm py-1.5">
