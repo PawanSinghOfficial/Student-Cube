@@ -47,9 +47,8 @@ const ChatPage = () => {
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
   const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
-  // Buyers are restricted until an admin verifies their ₹9 contact unlock.
-  // Sellers can always chat freely in their own conversations.
-  const chatUnlocked = isSellerInActive || contactVerified;
+  // Both buyer and seller are restricted until admin verifies the buyer's ₹9 contact unlock.
+  const chatUnlocked = contactVerified;
 
   // Track the active listing's status (for freeze / complete actions)
   useEffect(() => {
@@ -69,9 +68,10 @@ const ChatPage = () => {
     return () => { cancelled = true; };
   }, [activeConversation, messages.length]);
 
-  // Track whether this buyer's contact unlock has been admin-verified
+  // Track whether the buyer in this conversation has an admin-verified contact unlock.
+  // Applies to BOTH buyer and seller views — seller is also locked until verification.
   useEffect(() => {
-    if (!activeConversation || !user || !isBuyerInActive) {
+    if (!activeConversation || !user) {
       setContactVerified(false);
       return;
     }
@@ -80,13 +80,13 @@ const ChatPage = () => {
       .from("contact_unlocks")
       .select("verified")
       .eq("listing_id", activeConversation.listing_id)
-      .eq("buyer_id", user.id)
+      .eq("buyer_id", activeConversation.buyer_id)
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setContactVerified(!!(data as any)?.verified);
       });
     return () => { cancelled = true; };
-  }, [activeConversation, user, isBuyerInActive, messages.length]);
+  }, [activeConversation, user, messages.length]);
 
   // Pending freeze request in this conversation (if any)
   const pendingFreeze = (messages as any[]).find(
@@ -105,19 +105,25 @@ const ChatPage = () => {
       if (updErr) throw updErr;
 
       if (accept) {
+        // Only mark as sold once the buyer's ₹9 contact unlock is admin-verified.
+        // Otherwise reserve the listing (frozen) — admin verification will auto-finalise it as sold.
+        const nextStatus = contactVerified ? "sold" : "frozen";
         const { error: lErr } = await supabase
           .from("listings")
-          .update({ status: "sold" })
+          .update({ status: nextStatus })
           .eq("id", activeConversation.listing_id)
           .eq("user_id", user.id);
         if (lErr) throw lErr;
+        setActiveListingStatus(nextStatus);
       }
 
       await supabase.from("messages").insert({
         conversation_id: activeConversation.id,
         sender_id: user.id,
         content: accept
-          ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+          ? (contactVerified
+              ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+              : `✅ Offer of ₹${Number(msg.offer_price).toLocaleString()} accepted. Listing reserved — it will be marked sold once admin verifies the buyer's ₹9 contact payment.`)
           : `❌ Offer of ₹${Number(msg.offer_price).toLocaleString()} declined.`,
         message_type: "system",
       } as any);
