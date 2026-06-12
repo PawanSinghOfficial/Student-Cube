@@ -68,9 +68,10 @@ const ChatPage = () => {
     return () => { cancelled = true; };
   }, [activeConversation, messages.length]);
 
-  // Track whether this buyer's contact unlock has been admin-verified
+  // Track whether the buyer in this conversation has an admin-verified contact unlock.
+  // Applies to BOTH buyer and seller views — seller is also locked until verification.
   useEffect(() => {
-    if (!activeConversation || !user || !isBuyerInActive) {
+    if (!activeConversation || !user) {
       setContactVerified(false);
       return;
     }
@@ -79,13 +80,13 @@ const ChatPage = () => {
       .from("contact_unlocks")
       .select("verified")
       .eq("listing_id", activeConversation.listing_id)
-      .eq("buyer_id", user.id)
+      .eq("buyer_id", activeConversation.buyer_id)
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setContactVerified(!!(data as any)?.verified);
       });
     return () => { cancelled = true; };
-  }, [activeConversation, user, isBuyerInActive, messages.length]);
+  }, [activeConversation, user, messages.length]);
 
   // Pending freeze request in this conversation (if any)
   const pendingFreeze = (messages as any[]).find(
