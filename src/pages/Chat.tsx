@@ -47,9 +47,8 @@ const ChatPage = () => {
 
   const isSellerInActive = !!activeConversation && activeConversation.seller_id === user?.id;
   const isBuyerInActive = !!activeConversation && activeConversation.buyer_id === user?.id;
-  // Buyers are restricted until an admin verifies their ₹9 contact unlock.
-  // Sellers can always chat freely in their own conversations.
-  const chatUnlocked = isSellerInActive || contactVerified;
+  // Both buyer and seller are restricted until admin verifies the buyer's ₹9 contact unlock.
+  const chatUnlocked = contactVerified;
 
   // Track the active listing's status (for freeze / complete actions)
   useEffect(() => {
