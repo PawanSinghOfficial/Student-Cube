@@ -105,19 +105,25 @@ const ChatPage = () => {
       if (updErr) throw updErr;
 
       if (accept) {
+        // Only mark as sold once the buyer's ₹9 contact unlock is admin-verified.
+        // Otherwise reserve the listing (frozen) — admin verification will auto-finalise it as sold.
+        const nextStatus = contactVerified ? "sold" : "frozen";
         const { error: lErr } = await supabase
           .from("listings")
-          .update({ status: "sold" })
+          .update({ status: nextStatus })
           .eq("id", activeConversation.listing_id)
           .eq("user_id", user.id);
         if (lErr) throw lErr;
+        setActiveListingStatus(nextStatus);
       }
 
       await supabase.from("messages").insert({
         conversation_id: activeConversation.id,
         sender_id: user.id,
         content: accept
-          ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+          ? (contactVerified
+              ? `✅ Offer accepted! Sold for ₹${Number(msg.offer_price).toLocaleString()}.`
+              : `✅ Offer of ₹${Number(msg.offer_price).toLocaleString()} accepted. Listing reserved — it will be marked sold once admin verifies the buyer's ₹9 contact payment.`)
           : `❌ Offer of ₹${Number(msg.offer_price).toLocaleString()} declined.`,
         message_type: "system",
       } as any);
