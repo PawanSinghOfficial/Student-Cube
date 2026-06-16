@@ -47,7 +47,7 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-background shadow-md">
-              <img src={logo} alt="IPU KA ADDA logo" className="w-full h-full object-contain" />
+              <img src={logo} alt="C:\Users\pawan\OneDrive\Desktop\Shodwe.png" className="w-full h-full object-contain" />
             </div>
             <div className="hidden sm:block">
               <span className="font-bold text-xl text-foreground">STUDENT</span>
