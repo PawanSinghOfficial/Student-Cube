@@ -50,8 +50,8 @@ export function Header() {
               <img src={logo} alt="IPU KA ADDA logo" className="w-full h-full object-contain" />
             </div>
             <div className="hidden sm:block">
-              <span className="font-bold text-xl text-foreground">IPU KA</span>
-              <span className="font-bold text-xl text-accent ml-1">ADDA</span>
+              <span className="font-bold text-xl text-foreground">STUDENT</span>
+              <span className="font-bold text-xl text-accent ml-1">CUBE</span>
             </div>
           </Link>
 
